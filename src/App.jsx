@@ -5,7 +5,7 @@ export default function App() {
         <p className="eyebrow">Official Website</p>
         <h1 id="site-title">Inkblot</h1>
         <p className="intro">
-          A fresh GitHub Pages site, powered by Vite and React.
+          More info coming soon...
         </p>
         <a
           className="button"
