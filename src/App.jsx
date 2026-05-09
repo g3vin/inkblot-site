@@ -5,7 +5,7 @@ export default function App() {
         <p className="eyebrow">Official Website</p>
         <h1 id="site-title">Inkblot</h1>
         <p className="intro">
-          More info coming soon...
+          More info coming soon, we promise...
         </p>
         <a
           className="button"
