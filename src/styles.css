@@ -47,7 +47,9 @@ a {
 h1 {
   margin: 0;
   color: #111713;
+  font-family: "Playpen Sans", cursive;
   font-size: clamp(3.25rem, 13vw, 8.5rem);
+  font-weight: 800;
   line-height: 0.9;
 }
 
