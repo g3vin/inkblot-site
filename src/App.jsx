@@ -4,7 +4,7 @@ export default function App() {
       <section className="hero" aria-labelledby="site-title">
         <h1 id="site-title">Inkblot</h1>
         <p className="intro">
-          More info coming soon, we promise...
+          The visual writing studio for creatives
         </p>
       </section>
     </main>
