@@ -1,0 +1,96 @@
+/* Direction F · Monolith on location — dark first, the poster hero, full-bleed place
+ * bands carrying one huge line each, terse copy, nothing quiet. */
+
+.mono { font-size: var(--step-4); line-height: 0.92; letter-spacing: -0.055em; max-width: 13ch; }
+.mono--on { color: var(--on-media); }
+
+/* Hero: a poster sized to the screen, less a strip so the app's edge shows */
+.hero { position: relative; isolation: isolate; color: var(--on-media); min-height: calc(100svh - 7rem); display: flex; align-items: flex-end; }
+.hero__media { position: absolute; inset: 0; z-index: -1; }
+.hero__media::after {
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(180deg, rgba(10, 12, 9, 0.42) 0%, rgba(10, 12, 9, 0.12) 35%, rgba(10, 12, 9, 0.62) 72%, rgba(10, 12, 9, 0.9) 100%);
+}
+.hero__body { width: 100%; display: grid; gap: 1rem; padding-block: 7rem 2rem; }
+.hero__title { font-size: var(--step-fill); letter-spacing: var(--tracking-hero); line-height: 0.78; margin-left: -0.06em; color: var(--on-media); }
+.hero__row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem;
+  border-top: 2px solid color-mix(in srgb, var(--on-media) 80%, transparent); padding-top: 1.1rem;
+}
+.hero__line { font: 700 var(--step-2)/1.05 var(--font-display); letter-spacing: -0.04em; }
+.btn--hero { min-height: 56px; padding-inline: 1.75rem; font-size: 1.125rem; }
+.hero .btn--hero { background: var(--on-media); color: #14120f; }
+.hero .btn--hero:hover { background: #fff; }
+.hero__platforms, .hero__platforms a, .hero__platforms [aria-current='true'] { color: var(--on-media); }
+.hero__fig { margin-left: auto; color: var(--on-media); opacity: 0.8; }
+@media (max-width: 700px) { .hero .btn--hero { width: 100%; } .hero__fig { margin-left: 0; } }
+
+/* See it */
+.see { padding-block: 2rem clamp(3rem, 6vw, 5rem); }
+.see__line { margin-top: 1.5rem; font: 700 var(--step-2)/1.1 var(--font-display); letter-spacing: -0.04em; }
+
+/* Six stops */
+.pages { list-style: none; margin: 2.5rem 0 0; padding: 0; display: grid; gap: 2rem 1.25rem; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .pages { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .pages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pages li { display: grid; gap: 0.3rem; align-content: start; }
+.pages .slot { font-size: 0.6875rem; margin-bottom: 0.6rem; }
+.pages .h3 { font-size: var(--step-2); letter-spacing: -0.04em; }
+
+/* Roster: numbered, huge */
+.roster { border-top: 1px solid var(--line); }
+.roster__list { list-style: none; margin: 1.25rem 0 0; padding: 0; border-top: 1px solid var(--line-strong); }
+.roster__list a {
+  display: grid; grid-template-columns: 3rem minmax(0, 1.3fr) minmax(0, 1fr); align-items: center; gap: 0.25rem 1.5rem;
+  padding: 0.8rem 0; border-bottom: 1px solid var(--line-strong); text-decoration: none;
+}
+.roster__name { font-size: var(--step-4); line-height: 0.95; letter-spacing: -0.055em; }
+.roster__benefit { font: 500 var(--step-1)/1.3 var(--font-ui); letter-spacing: -0.015em; color: var(--text-muted); }
+.roster__list a:hover .roster__name { color: var(--brand); }
+@media (max-width: 760px) {
+  .roster__list a { grid-template-columns: 2rem minmax(0, 1fr); }
+  .roster__name { font-size: var(--step-3); }
+  .roster__benefit { grid-column: 2; }
+}
+
+/* Place bands */
+.place { position: relative; isolation: isolate; color: var(--on-media); min-height: clamp(480px, 70vw, 760px); display: flex; align-items: flex-end; }
+.place__media { position: absolute; inset: 0; z-index: -1; }
+.place__media img { filter: saturate(1.1); }
+.place__media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 12, 9, 0.2), rgba(10, 12, 9, 0.85)); }
+.place__tag { position: absolute; top: 1rem; right: 1rem; z-index: 3; background: rgba(0, 0, 0, 0.55); color: #e9e2d6; padding: 4px 8px; }
+.place__body { width: 100%; display: grid; gap: 1.5rem; padding-block: 6rem clamp(3rem, 5vw, 4.5rem); }
+.place__row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem 3rem; border-top: 2px solid color-mix(in srgb, var(--on-media) 80%, transparent); padding-top: 1.1rem; }
+.place__line { font: 600 var(--step-1)/1.3 var(--font-ui); letter-spacing: -0.015em; max-width: 30ch; }
+.place__meta { color: var(--on-media); opacity: 0.88; text-align: right; }
+.place__meta a { color: var(--on-media); }
+@media (max-width: 700px) { .place__meta { text-align: left; } }
+.spread-wrap { margin-top: clamp(-4rem, -6vw, -2rem); position: relative; z-index: 2; padding-bottom: var(--section); max-width: calc(980px + 2 * var(--gutter)); }
+
+/* Night */
+.night { background: var(--night-bg); color: var(--night-text); padding-block: var(--section); }
+.night__inner { display: grid; gap: 1.5rem; }
+.night__title { color: var(--night-text); }
+.night__copy { font: 500 var(--step-1)/1.3 var(--font-ui); color: var(--night-muted); }
+.window--night { --line-strong: #2a251f; --line: #1a1714; --bg-raised: #0b0a09; --slot-bg: #0d0b0a; --slot-ink: #a08060; --tile-edge: rgba(201, 162, 115, 0.22); margin-top: 1.5rem; }
+
+/* Proof */
+.proof { padding-block: clamp(3rem, 5vw, 5rem); }
+.proof__grid { display: grid; gap: 2rem; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: center; }
+@media (max-width: 860px) { .proof__grid { grid-template-columns: 1fr; } }
+
+/* Price */
+.price { border-top: 1px solid var(--line); }
+.price__grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem 3rem; }
+.price__title { font-size: var(--step-hero); letter-spacing: var(--tracking-hero); line-height: 0.8; margin-left: -0.05em; color: var(--brand); }
+.price__line { font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; max-width: 20ch; }
+
+/* FAQ */
+.faq-wrap { display: grid; gap: 1.25rem 2rem; grid-template-columns: minmax(0, 0.5fr) minmax(0, 1.5fr); }
+@media (max-width: 860px) { .faq-wrap { grid-template-columns: 1fr; } }
+
+/* Final */
+.final { padding-block: clamp(4rem, 8vw, 7rem); border-top: 1px solid var(--line); }
+.final__inner { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem 3rem; }
+.final__title { font-size: var(--step-4); letter-spacing: -0.06em; line-height: 0.85; }
+#book .place__body { padding-bottom: clamp(5.5rem, 9vw, 8rem); }

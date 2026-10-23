@@ -1,0 +1,70 @@
+---
+/**
+ * /about — the person who makes Inkblot: a portrait, a short bio and why they made it.
+ * Linked from the header and footer, never a section of the home page. The words live
+ * in src/data/about.ts. The download lives in the footer, as on every page.
+ */
+import Base from '../layouts/Base.astro'
+import Slot from '../components/Slot.astro'
+import { ABOUT } from '../data/about'
+import { SITE } from '../data/site'
+---
+<Base title={`${ABOUT.title} · ${SITE.name}`} description={ABOUT.description}>
+  <article class="about">
+    <header class="wrap about__head">
+      <div class="about__who">
+        <p class="eyebrow">{ABOUT.title}</p>
+        <h1 class="display about__name">{ABOUT.name}</h1>
+        <p class="meta">{ABOUT.meta}</p>
+        <p class="about__intro">{ABOUT.intro}</p>
+      </div>
+      <figure class="about__photo">
+        {ABOUT.photo
+          ? <img src={ABOUT.photo.src} alt={ABOUT.photo.alt} width={ABOUT.photo.width} height={ABOUT.photo.height} loading="eager" decoding="async" />
+          : <Slot aspect="4 / 5" label={ABOUT.photoPlaceholder} />}
+      </figure>
+    </header>
+
+    <div class="wrap about__body">
+      <section class="about__text prose" aria-label="About">
+        {ABOUT.bio.map((p) => <p>{p}</p>)}
+      </section>
+
+      <section class="about__text prose" aria-labelledby="why-title">
+        <h2 class="about__h2" id="why-title">{ABOUT.why.title}</h2>
+        {ABOUT.why.paragraphs.map((p) => <p>{p}</p>)}
+      </section>
+
+      <p class="about__close">{ABOUT.close}</p>
+
+      <ul class="about__links">
+        {ABOUT.links.map((l) => <li><a class="link" href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .about { padding-block: clamp(2.5rem, 6vw, 5rem) var(--section); }
+  .about__head {
+    display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 2rem clamp(2rem, 6vw, 6rem); align-items: end;
+    padding-bottom: clamp(2.5rem, 5vw, 4rem); border-bottom: 1px solid var(--line-strong);
+  }
+  .about__who { display: grid; gap: 1rem; }
+  .about__name { font-size: var(--step-4); max-width: 10ch; }
+  /* The hello is set like writing: it's the reader's first sentence from the maker */
+  .about__intro { font: 400 var(--step-2)/1.35 var(--font-read); max-width: 30ch; text-wrap: pretty; margin-top: 0.5rem; }
+  .about__photo :global(.slot) { border-radius: var(--radius-card); }
+  .about__photo img { width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius-card); }
+  @media (max-width: 760px) {
+    .about__head { grid-template-columns: 1fr; }
+    .about__photo { max-width: 22rem; }
+  }
+
+  .about__body { display: grid; gap: clamp(2.5rem, 5vw, 4rem); padding-top: clamp(2.5rem, 5vw, 4rem); justify-items: start; }
+  .about__text { font-size: var(--step-1); line-height: 1.6; color: var(--text); }
+  .about__h2 { font: 700 var(--step-2)/1.1 var(--font-display); letter-spacing: -0.03em; margin-bottom: 0.25em; }
+  .about__close { font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; max-width: 24ch; }
+  .about__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; list-style: none; margin: 0; padding: 0; }
+</style>

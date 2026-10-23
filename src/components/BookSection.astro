@@ -1,0 +1,204 @@
+---
+/**
+ * BookSection — "Then it becomes a book." beside a 6 × 9 book in CSS 3D (cover, spine,
+ * page edges, page block). As the section scrolls up the screen the book turns from
+ * spine-on to face you, the cover opens onto the title page, then a leaf turns to a chapter
+ * opening, and the three steps light up as it goes. It doesn't pin: it plays while the
+ * reader scrolls, and is open at the chapter by the time the section's middle reaches the
+ * middle of the screen.
+ *
+ * Its resting state is the open spread, so with no script or under reduced motion the
+ * reader sees the pages.
+ */
+interface Props {
+  title: string
+  steps: string[]
+  facts: string[]
+  note: string
+  sample: {
+    title: string; author: string; imprint: string; coverTag: string
+    chapterLabel: string; chapterTitle: string; verso: string[]; recto: string[]
+  }
+}
+const { title, steps, facts, note, sample } = Astro.props
+const [first, ...rest] = sample.recto
+---
+<section class="book" id="book" aria-labelledby="book-title">
+  <div class="book__stage">
+    <div class="wrap book__grid">
+      <div class="stack">
+        <h2 class="display book__title" id="book-title">{title}</h2>
+        <ol class="book__steps">
+          {steps.map((s, i) => <li><span class="meta">{String(i + 1).padStart(2, '0')}</span> {s}</li>)}
+        </ol>
+        <ul class="facts meta">{facts.map((f) => <li>{f}</li>)}</ul>
+      </div>
+      <div class="book__scene" role="img" aria-label={`A sample book, ${sample.title}: its cover and spine, then a two-page spread with a chapter opening`}>
+        <div class="book__shadow"></div>
+        <div class="book__model">
+          <div class="tb tb--back"></div>
+          <div class="tb tb--edge tb--fore"></div>
+          <div class="tb tb--edge tb--head"></div>
+          <div class="tb tb--edge tb--tail"></div>
+          <div class="tb tb--spine"><span>{sample.title}</span><span class="tb__spine-by">{sample.author}</span></div>
+          <div class="tb tb--top page page--recto">
+            <p class="page__chap">{sample.chapterLabel}</p>
+            <p class="page__title">{sample.chapterTitle}</p>
+            <p class="page__text"><span class="page__drop">{first[0]}</span>{first.slice(1)}</p>
+            {rest.map((p) => <p class="page__text">{p}</p>)}
+            <span class="page__folio">13</span>
+          </div>
+          <div class="tb tb--leaf">
+            <div class="leaf__face page page--recto page--titlepage">
+              <p class="page__booktitle">{sample.title}</p>
+              <p class="page__by">{sample.author}</p>
+              <p class="page__imprint">{sample.imprint}</p>
+            </div>
+            <div class="leaf__face leaf__face--back page page--verso">
+              <p class="page__head">{sample.title}</p>
+              {sample.verso.map((p) => <p class="page__text">{p}</p>)}
+              <span class="page__folio">12</span>
+            </div>
+          </div>
+          <div class="tb tb--cover">
+            <div class="cover__face cover__face--front">
+              <p class="cover__title">{sample.title}</p>
+              <p class="cover__by">{sample.author}</p>
+              <span class="cover__tag meta">{sample.coverTag}</span>
+            </div>
+            <div class="cover__face cover__face--back"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="meta book__note">{note}</p>
+  </div>
+</section>
+
+<style>
+  .book { background: var(--bg-sunk); }
+  .facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+  .facts li { border-top: 1px solid var(--line-strong); padding-top: 0.4rem; }
+  .book { position: relative; padding: 0; }
+  .book__stage { display: grid; align-content: center; gap: 1rem; padding-block: var(--section); }
+  :global(.js) .book:not(.is-static) .book__stage { min-height: 100svh; padding-block: 0; overflow: hidden; }
+  .book__grid { display: grid; gap: 2rem 3rem; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); align-items: center; }
+  .book__title { font-size: var(--step-4); max-width: 9ch; }
+  .book__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; font: 500 var(--step-1)/1.3 var(--font-ui); letter-spacing: -0.015em; }
+  .book__steps li { color: var(--text-muted); transition: color var(--dur-slow) var(--ease-out); }
+  .book__steps li.is-on, .book.is-static .book__steps li, :global(html:not(.js)) .book__steps li { color: var(--text); }
+  .book__steps .meta { margin-right: 0.4rem; }
+  .book__note { text-align: center; }
+  @media (max-width: 900px) {
+    .book__grid { grid-template-columns: 1fr; gap: 1.25rem; }
+    .book__title { font-size: var(--step-3); max-width: none; }
+    .book__steps { font-size: 1.0625rem; }
+     .facts { font-size: 0.75rem; }
+  }
+
+  .book__scene {
+    --bw: min(34svh, 21vw); --bh: calc(var(--bw) * 1.5); --bt: calc(var(--bw) * 0.12);
+    position: relative; height: calc(var(--bh) * 1.25); display: grid; place-items: center;
+    perspective: calc(var(--bw) * 7);
+  }
+  @media (max-width: 900px) { .book__scene { --bw: min(24svh, 40vw); } }
+  .book__shadow {
+    position: absolute; left: 50%; top: 50%; width: calc(var(--bw) * 2.1); height: calc(var(--bh) * 0.9);
+    transform: translate(-50%, -42%) scaleX(var(--spread-shadow, 1)); border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(20, 16, 10, 0.32), transparent);
+    filter: blur(18px);
+  }
+  .book__model {
+    position: relative; width: var(--bw); height: var(--bh); transform-style: preserve-3d;
+    transform: translateX(var(--shift, calc(var(--bw) / 2))) rotateX(var(--rx, 4deg)) rotateY(var(--ry, 0deg)) rotateZ(var(--rz, 0deg));
+  }
+  .tb { position: absolute; left: 0; top: 0; width: var(--bw); height: var(--bh); transform-style: preserve-3d; }
+  .tb--back { background: #34502f; transform: translateZ(calc(var(--bt) / -2)); border-radius: 0 3px 3px 0; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); }
+  .tb--spine {
+    width: var(--bt); transform-origin: left center; transform: translateZ(calc(var(--bt) / -2)) rotateY(-90deg);
+    background: linear-gradient(90deg, #2b4227, #3a5734 45%, #2f4a2b);
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding-block: 10%;
+    color: #efe8da; font: 400 calc(var(--bw) * 0.045)/1 var(--font-read); letter-spacing: 0.06em; text-transform: uppercase;
+    backface-visibility: hidden;
+  }
+  .tb--spine span { writing-mode: vertical-rl; white-space: nowrap; }
+  .tb__spine-by { font-size: 0.8em; opacity: 0.8; }
+  .tb--edge { background: repeating-linear-gradient(90deg, #f3eee3 0 1px, #e2dbcc 1px 2px); backface-visibility: hidden; }
+  .tb--fore { width: var(--bt); transform-origin: left center; transform: translateX(calc(var(--bw) - 2px)) translateZ(calc(var(--bt) / 2)) rotateY(90deg); background: repeating-linear-gradient(90deg, #f3eee3 0 1px, #ddd5c4 1px 2px); }
+  .tb--head { height: var(--bt); transform-origin: center top; transform: translateZ(calc(var(--bt) / -2)) rotateX(90deg); background: repeating-linear-gradient(0deg, #f3eee3 0 1px, #ddd5c4 1px 2px); }
+  .tb--tail { top: var(--bh); height: var(--bt); transform-origin: center top; transform: translateZ(calc(var(--bt) / 2)) rotateX(-90deg); background: repeating-linear-gradient(0deg, #f3eee3 0 1px, #ddd5c4 1px 2px); }
+  .tb--top { transform: translateZ(calc(var(--bt) / 2 - 2px)); }
+  .tb--leaf { transform-origin: left center; transform: translateZ(var(--lz, calc(var(--bt) / 2 + 4px))) rotateY(var(--leaf, -178deg)); }
+  .tb--cover { transform-origin: left center; transform: translateZ(calc(var(--bt) / 2 + 2px)) rotateY(var(--cov, -178deg)); }
+  .leaf__face, .cover__face { position: absolute; inset: 0; backface-visibility: hidden; }
+  .leaf__face--back, .cover__face--back { transform: rotateY(180deg); }
+
+  /* Pages are paper in every theme: it's a printed book */
+  .page {
+    background: #fffdf8; color: #1f1c18; overflow: hidden;
+    padding: 13% 12% 14%; font: 400 calc(var(--bw) * 0.037)/1.45 var(--font-read);
+    box-shadow: inset 0 0 0 1px rgba(40, 32, 20, 0.08);
+  }
+  .page--recto { background: linear-gradient(90deg, #ece6d9 0%, #fffdf8 9%); }
+  .page--verso { background: linear-gradient(270deg, #ece6d9 0%, #fffdf8 9%); }
+  .page__head { font-size: 0.72em; letter-spacing: 0.14em; text-transform: uppercase; text-align: center; color: #6b645a; margin-bottom: 1.6em; }
+  .page__chap { font-size: 0.8em; letter-spacing: 0.16em; text-transform: uppercase; text-align: center; color: #6b645a; margin-top: 18%; }
+  .page__title { font-size: 1.9em; line-height: 1.1; text-align: center; font-style: italic; margin: 0.4em 0 1.6em; }
+  .page__text { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+  .page__text + .page__text { text-indent: 1.4em; }
+  .page__drop { float: left; font-size: 3.3em; line-height: 0.86; padding: 0.06em 0.08em 0 0; }
+  .page__folio { position: absolute; bottom: 6%; font-size: 0.75em; color: #6b645a; }
+  .page--recto .page__folio { right: 12%; }
+  .page--verso .page__folio { left: 12%; }
+  .page--titlepage { display: grid; align-content: center; justify-items: center; text-align: center; gap: 0.6em; }
+  .page__booktitle { font-size: 1.9em; line-height: 1.1; }
+  .page__by { letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.8em; color: #48423a; }
+  .page__imprint { position: absolute; bottom: 9%; font-size: 0.7em; letter-spacing: 0.12em; text-transform: uppercase; color: #6b645a; }
+  .cover__face--front {
+    background:
+      radial-gradient(120% 70% at 70% 15%, rgba(255, 244, 222, 0.16), transparent 60%),
+      linear-gradient(160deg, #46653f, #3f5a3a 45%, #2f472b);
+    color: #f2eee6; border-radius: 0 3px 3px 0;
+    display: grid; align-content: space-between; padding: 16% 12% 12%;
+    box-shadow: inset 4px 0 6px -3px rgba(0, 0, 0, 0.35);
+  }
+  .cover__title { font: 400 calc(var(--bw) * 0.13)/1 var(--font-read); letter-spacing: -0.02em; }
+  .cover__by { font: 400 calc(var(--bw) * 0.045)/1 var(--font-read); letter-spacing: 0.16em; text-transform: uppercase; }
+  .cover__tag { position: absolute; left: 12%; right: 12%; top: 52%; color: rgba(242, 238, 230, 0.75); font-size: calc(var(--bw) * 0.04); text-align: center; }
+  .cover__face--back { background: repeating-linear-gradient(45deg, #e9e2d3 0 6px, #e3dbca 6px 12px); }
+</style>
+
+<script>
+  import { add, ease, lerp, seg, clamp, reduceMotion } from '../scripts/frame'
+
+  document.querySelectorAll<HTMLElement>('.book').forEach((section) => {
+    const model = section.querySelector<HTMLElement>('.book__model')!
+    const shadow = section.querySelector<HTMLElement>('.book__shadow')!
+    const scene = section.querySelector<HTMLElement>('.book__scene')!
+    const steps = [...section.querySelectorAll<HTMLElement>('.book__steps li')]
+    if (reduceMotion) { section.classList.add('is-static'); return }
+    add(section, {
+      tick() {
+        // 0 as the book itself comes up over the bottom of the screen, 1 once the section's
+        // middle reaches the middle of the screen. Measured from the book, not the section,
+        // so the turn is seen at every width (on phones the book sits below the words).
+        const r = section.getBoundingClientRect(), vh = window.innerHeight
+        const since = vh - scene.getBoundingClientRect().top, left = r.top + r.height / 2 - vh / 2
+        const q = since + left > 0 ? clamp(since / (since + left), 0, 1) : 1
+        const turn = ease(seg(q, 0.05, 0.4)), open = ease(seg(q, 0.42, 0.7)), leaf = ease(seg(q, 0.72, 1))
+        const bw = model.offsetWidth, bt = bw * 0.12
+        model.style.setProperty('--ry', `${lerp(52, 0, turn).toFixed(2)}deg`)
+        model.style.setProperty('--rx', `${lerp(14, 4, Math.max(turn * 0.5, open)).toFixed(2)}deg`)
+        model.style.setProperty('--rz', `${lerp(-5, 0, turn).toFixed(2)}deg`)
+        model.style.setProperty('--shift', `${((open * bw) / 2).toFixed(1)}px`)
+        model.style.setProperty('--cov', `${(-178 * open).toFixed(2)}deg`)
+        model.style.setProperty('--leaf', `${(-176 * leaf).toFixed(2)}deg`)
+        // The leaf rises over the open cover as it turns, so it lands on top of it.
+        model.style.setProperty('--lz', `${(bt / 2 + 6 * leaf + bt * 0.5 * Math.sin(Math.PI * leaf)).toFixed(1)}px`)
+        shadow.style.setProperty('--spread-shadow', lerp(0.55, 1, open).toFixed(3))
+        steps.forEach((li, i) => li.classList.toggle('is-on', q >= [0.05, 0.46, 0.76][i]))
+        return false
+      },
+    })
+  })
+</script>

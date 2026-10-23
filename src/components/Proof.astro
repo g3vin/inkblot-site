@@ -1,0 +1,23 @@
+---
+/**
+ * Proof — real quotes from writers. Never invented: the section renders nothing until
+ * src/data/home.ts has at least one, with the writer's permission.
+ */
+interface Props { testimonials: { quote: string; name: string; writes: string }[] }
+const { testimonials } = Astro.props
+---
+{testimonials.length > 0 && (
+  <section class="section proof" aria-label="From writers">
+    <div class="wrap proof__grid">
+      {testimonials.map((t) => <blockquote><p>{t.quote}</p><cite class="meta">{t.name}, {t.writes}</cite></blockquote>)}
+    </div>
+  </section>
+)}
+
+<style>
+  .proof { border-top: 1px solid var(--line); padding-block: clamp(3rem, 5vw, 5rem); }
+  .proof__grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  blockquote { margin: 0; border-left: 2px solid var(--line-strong); padding: 0.25rem 0 0.25rem 1.25rem; }
+  blockquote p { font-style: italic; }
+  cite { display: block; margin-top: 0.5rem; font-style: normal; }
+</style>

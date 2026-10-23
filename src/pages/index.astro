@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro'
+import Hero from '../components/Hero.astro'
+import Band from '../components/Band.astro'
+import SplitSection from '../components/SplitSection.astro'
+import NotesSection from '../components/NotesSection.astro'
+import NightSection from '../components/NightSection.astro'
+import IndexList from '../components/IndexList.astro'
+import BookSection from '../components/BookSection.astro'
+import DownloadBand from '../components/DownloadBand.astro'
+import MarketplaceSection from '../components/MarketplaceSection.astro'
+import PledgeBand from '../components/PledgeBand.astro'
+import Proof from '../components/Proof.astro'
+import PriceSection from '../components/PriceSection.astro'
+import { HOME } from '../data/home'
+import { FEATURES } from '../data/features'
+import { PLACES } from '../data/places'
+import { isLive } from '../data/nav'
+
+const posters = PLACES[HOME.hero.place].posters ?? []
+const preloadImage = posters.length
+  ? { src: posters[posters.length - 1].src, srcset: posters.map((p) => `${p.src} ${p.width}w`).join(', ') }
+  : undefined
+const pledgeLink = isLive(HOME.pledge.link.href) ? HOME.pledge.link : undefined
+---
+<!-- The arc: what it is → no fears → the whole book in one window → notes on the words →
+     how it feels at night → everything else → it becomes a book (download again) →
+     getting read → why it's safe → who says so → free, and the download. -->
+<Base header="over" preloadImage={preloadImage}>
+  <Hero {...HOME.hero}>
+    <SplitSection {...HOME.split} />
+    <Band {...HOME.band} />
+  </Hero>
+  <NotesSection {...HOME.notes} />
+  <NightSection {...HOME.night} />
+  <IndexList eyebrow={HOME.roster.eyebrow} features={FEATURES} />
+  <BookSection {...HOME.book} />
+  <DownloadBand {...HOME.bookCta} />
+  <MarketplaceSection {...HOME.marketplace} />
+  <PledgeBand {...HOME.pledge} link={pledgeLink} />
+  <Proof {...HOME.proof} />
+  <PriceSection />
+</Base>

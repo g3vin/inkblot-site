@@ -2,3 +2,9 @@ node_modules
 dist
 .DS_Store
 *.local
+.astro
+
+# Fetched from the app's latest release before every build (scripts/sync-app.mjs)
+public/media/app/
+src/data/app.generated.json
+.cache/

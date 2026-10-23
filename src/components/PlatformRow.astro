@@ -1,0 +1,7 @@
+---
+/** Every platform's download, in a row. The visitor's own is marked by scripts/device.ts. */
+import { PLATFORMS } from '../data/release'
+---
+<ul class="platforms" aria-label="Other platforms">
+  {PLATFORMS.map((p) => <li><a href={p.href} data-platform={p.id}>{p.name}</a></li>)}
+</ul>

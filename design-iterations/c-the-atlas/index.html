@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-dir="c">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inkblot · The atlas</title>
+<meta name="description" content="Draft it, map it, typeset it. Maps, timelines, canvases and print-ready pages in one free app, with no account and no AI writing for you.">
+<meta name="theme-color" content="#faf8f4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161412" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="Inkblot: Write.">
+<meta property="og:description" content="Draft it, map it, typeset it.">
+<meta property="og:image" content="[OG IMAGE — a world map from the app + headline, 1200×630]">
+<script>(function(){var r=document.documentElement,t,h=location.hash.slice(1);if(/^(paper|ink|black|auto)$/.test(h))t=h;else{try{t=localStorage.getItem('ib-site-theme-'+r.getAttribute('data-dir'))}catch(e){}}t=t||r.getAttribute('data-default-theme');if(t&&t!=='auto')r.setAttribute('data-theme',t)})()</script>
+<link rel="icon" href="../shared/brand/app-icon.svg" type="image/svg+xml">
+<link rel="preload" href="../shared/fonts/inter-opsz.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="../shared/base.css">
+<link rel="stylesheet" href="style.css">
+<script src="../shared/site.js" defer></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Inkblot","applicationCategory":"Writing","operatingSystem":"macOS, Windows, Linux, iOS, iPadOS, Android","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<aside class="proto-flag" aria-label="Prototype note">Prototype · Direction C, The atlas · anything in [brackets] is a placeholder</aside>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="#top" aria-label="Inkblot, home"><span class="wordmark" role="img" aria-label="inkblot"></span></a>
+    <nav aria-label="Main">
+      <a href="#world">The world</a>
+      <a href="#book">The book</a>
+      <a href="#pledge">No AI</a>
+      <a href="#price">Price</a>
+    </nav>
+    <a class="btn btn--primary btn--small" href="#download" data-download data-download-short><span data-download-label>Download</span></a>
+  </div>
+</header>
+
+<main id="main">
+  <!-- 1 · Hero over a drawn graticule -->
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <svg class="hero__grid" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">
+        <ellipse cx="600" cy="320" rx="560" ry="560"/>
+        <ellipse cx="600" cy="320" rx="420" ry="560"/>
+        <ellipse cx="600" cy="320" rx="280" ry="560"/>
+        <ellipse cx="600" cy="320" rx="140" ry="560"/>
+        <line x1="600" y1="-240" x2="600" y2="880"/>
+        <path d="M40 120 Q600 60 1160 120"/>
+        <path d="M40 220 Q600 180 1160 220"/>
+        <line x1="40" y1="320" x2="1160" y2="320"/>
+        <path d="M40 420 Q600 460 1160 420"/>
+        <path d="M40 520 Q600 580 1160 520"/>
+      </g>
+      <path class="hero__route" d="M760 520 C 820 430, 900 420, 930 340 S 1010 220, 1090 190" fill="none" stroke-width="2" stroke-dasharray="7 7" vector-effect="non-scaling-stroke"/>
+      <g class="hero__stops"><circle cx="760" cy="520" r="6"/><circle cx="930" cy="340" r="6"/><circle cx="1090" cy="190" r="6"/></g>
+    </svg>
+    <div class="wrap hero__body">
+      <h1 class="display hero__title" id="hero-title">Write.</h1>
+      <div class="hero__rule" aria-hidden="true"></div>
+      <div class="hero__row">
+        <p class="hero__line">Draft it, map it, typeset it. One free app from first line to finished book, and nothing in it writes for you.</p>
+        <div class="download" id="download">
+          <a class="btn btn--primary btn--hero" href="#download-all" data-download><span data-download-label>Download free</span></a>
+          <p class="meta">Free · Version [—] · No account · Works offline</p>
+          <ul class="platforms" aria-label="Other platforms">
+            <li><a href="#download-macos" data-platform="mac">macOS</a></li>
+            <li><a href="#download-windows" data-platform="windows">Windows</a></li>
+            <li><a href="#download-linux" data-platform="linux">Linux</a></li>
+            <li><a href="#download-app-store" data-platform="ios">iPhone &amp; iPad</a></li>
+            <li><a href="#download-google-play" data-platform="android">Android</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="wrap">
+      <figure class="window hero__window">
+        <div class="window__bar"><i></i><i></i><i></i><span class="meta">The Saltmarsh Coast — map</span></div>
+        <div class="slot" style="--ar: 16 / 9"><span>[APP SCREENSHOT OR LOOP — a world map with places, a route and a journey on the timeline, chapter open beside it]</span></div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 2 · Trust, straight under the proof -->
+  <section class="trust" aria-label="What you can count on">
+    <div class="wrap trust__row">
+      <p class="ui">No account. No cloud. No tracking. Your world stays on your device.</p>
+      <a class="link" href="#pledge">Inkblot never writes a word for you →</a>
+    </div>
+  </section>
+
+  <!-- 3 · The journey as a route -->
+  <section class="section journey" aria-labelledby="journey-title">
+    <div class="wrap">
+      <p class="eyebrow">The route</p>
+      <h2 class="display h2" id="journey-title">Six stops between an idea and a book.</h2>
+      <ol class="route">
+        <li><span class="meta">01</span><h3 class="h3">Idea</h3><p>Boards for notes, pictures and voice memos.</p></li>
+        <li><span class="meta">02</span><h3 class="h3">World</h3><p>Maps, places, routes, and a timeline of who was where.</p></li>
+        <li><span class="meta">03</span><h3 class="h3">Draft</h3><p>Prose or screenplay, beside the map it happens on.</p></li>
+        <li><span class="meta">04</span><h3 class="h3">Revise</h3><p>Named versions, compared side by side.</p></li>
+        <li><span class="meta">05</span><h3 class="h3">Typeset</h3><p>Seven book styles, real pages.</p></li>
+        <li><span class="meta">06</span><h3 class="h3">Publish</h3><p>Print PDF, cover wrap, EPUB.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4 · The world tools -->
+  <section class="section world" id="world" aria-labelledby="world-title">
+    <div class="wrap">
+      <div class="world__head">
+        <p class="eyebrow">The world</p>
+        <h2 class="display h2" id="world-title">Know your world as well as your sentences.</h2>
+      </div>
+      <ul class="bento">
+        <li class="bento__map"><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a drawn world: coastlines, regions, places and a journey]</span></div><h3 class="h3">Maps</h3><p>Draw coastlines and regions, pin places, trace routes, and follow a character's journey through the story.</p></li>
+        <li><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a star system in 3D]</span></div><h3 class="h3">Planets &amp; galaxies</h3><p>Star systems and galaxies, drawn on your device. Look from above, edge on, or in depth.</p></li>
+        <li><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a real-Earth map with places]</span></div><h3 class="h3">The real Earth</h3><p>Coastlines and borders built in. Satellite and street detail when you turn them on.</p></li>
+        <li class="bento__wide"><div class="slot" style="--ar: 21 / 8"><span>[SCREENSHOT — the story timeline with events and travellers]</span></div><h3 class="h3">Timeline</h3><p>Events on the story's own calendar, with the distance between any two travellers over time.</p></li>
+        <li><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a canvas board]</span></div><h3 class="h3">Canvases</h3><p>Endless boards, saved as JSON Canvas so they open in Obsidian too.</p></li>
+        <li><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a note with a voice memo]</span></div><h3 class="h3">Notes &amp; voice memos</h3><p>Anchored to the line they're about.</p></li>
+        <li><div class="slot" style="--ar: 4 / 3"><span>[SCREENSHOT — a screenplay page]</span></div><h3 class="h3">Screenplays</h3><p>Scenes, slug lines and Fountain.</p></li>
+      </ul>
+      <p class="meta">[More features may join before launch]</p>
+    </div>
+  </section>
+
+  <!-- 5 · Then the book -->
+  <section class="section book" id="book" aria-labelledby="book-title">
+    <div class="wrap book__grid">
+      <div class="stack">
+        <p class="eyebrow">The book</p>
+        <h2 class="display h2" id="book-title">Then it becomes a book.</h2>
+        <p class="prose">Typeset mode shows every chapter as real pages. Pick one of seven book styles, set a trim size, add front and back matter, and export a print PDF and a cover with spine and bleed, checked the way KDP and IngramSpark check it. The EPUB comes from the same pages.</p>
+        <ul class="facts meta">
+          <li>6 × 9 · 5.5 × 8.5 · 5 × 8 · B-format · or your own</li>
+          <li>Cover wrap with ⅛ in bleed</li>
+          <li>PDF · EPUB · Word · Markdown · HTML</li>
+        </ul>
+      </div>
+      <figure>
+        <div class="spread" role="img" aria-label="Placeholder for a sample two-page spread">
+          <div class="spread__page"><div class="slot"><span>[SAMPLE SPREAD — the chapter's map as a frontispiece]</span></div><span class="spread__folio">14</span></div>
+          <div class="spread__page"><div class="slot"><span>[SAMPLE SPREAD — chapter opening]</span></div><span class="spread__folio">15</span></div>
+        </div>
+        <figcaption class="meta figcap">Fig. 2 · A 6 × 9 in spread at true proportion [replace with a real export]</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 6 · Pledge -->
+  <section class="section pledge" id="pledge" aria-labelledby="pledge-title">
+    <div class="wrap pledge__grid">
+      <div class="stack">
+        <p class="eyebrow">Our pledge</p>
+        <h2 class="display h2" id="pledge-title">The world is yours. So is every word.</h2>
+      </div>
+      <div class="stack prose">
+        <p>There's no generative AI in Inkblot: nothing that drafts, rewrites, continues, summarises or "improves" your words, no invented names or places, and no chat. Your manuscript and your maps stay on your device as ordinary files. We never see them, and they will never be used to train anything.</p>
+        <p class="pledge__small">A few small models run on your device for jobs that aren't writing: finding synonyms and rhymes, turning your voice into text when you dictate, and reading your words aloud. They work offline and never send your text anywhere.</p>
+        <a class="link" href="#pledge">Read the full pledge →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · Proof -->
+  <section class="section proof" aria-labelledby="proof-title">
+    <div class="wrap">
+      <p class="eyebrow">Made with Inkblot</p>
+      <h2 class="display h2" id="proof-title">Worlds people have built.</h2>
+      <div class="proof__grid">
+        <div class="slot" style="--ar: 4 / 3"><span>[WRITER'S WORLD — a real user's map, shared with permission and credited]</span></div>
+        <div class="slot" style="--ar: 4 / 3"><span>[SAMPLE BOOK — public-domain novel with its map, typeset in Inkblot]</span></div>
+        <blockquote class="quote-slot">[TESTIMONIAL — replace with a real quote from a worldbuilder]<cite>[Name, what they write]</cite></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · Price -->
+  <section class="section price" id="price" aria-labelledby="price-title">
+    <div class="wrap price__grid">
+      <h2 class="display h2" id="price-title">Free.</h2>
+      <div class="stack prose">
+        <p class="lede">Everything in Inkblot today stays free: the maps, the timeline, the typesetting.</p>
+        <p>A Founding Writer licence is a one-time [PRICE — about $25–40] for anyone who'd like to help. It gets you beta builds and never unlocks a feature.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · FAQ -->
+  <section class="section" aria-labelledby="faq-title">
+    <div class="wrap faq-wrap">
+      <h2 class="display h2" id="faq-title">Questions</h2>
+      <div class="faq">
+        <details><summary>Do I need to be online to use maps?</summary><div><p>No. Worlds you draw, planets and galaxies, and the Earth's coastlines and borders all work offline. Satellite pictures, street detail and place search are optional and off until you turn them on.</p></div></details>
+        <details><summary>How is it different from World Anvil or Campfire?</summary><div><p>Inkblot keeps the world beside the manuscript, then typesets the book. It's an app on your device, not a website: free, offline, and no account.</p></div></details>
+        <details><summary>How is it different from Scrivener, Vellum or Atticus?</summary><div><p>Scrivener is made for drafting and organising; Vellum and Atticus for formatting. Inkblot does both, plus maps, timelines and canvases.</p></div></details>
+        <details><summary>Does Inkblot use AI?</summary><div><p>Nothing in Inkblot writes, rewrites, continues or summarises your words, or invents names and places. A few small models run on your device for synonyms and rhymes, dictation and reading aloud. Your work is never used to train anything.</p></div></details>
+        <details><summary>Is it really free?</summary><div><p>Yes. Everything in Inkblot today stays free. There may be optional extras later, but nothing you rely on now will move behind them.</p></div></details>
+        <details><summary>Which devices does it run on?</summary><div><p>Mac, Windows and Linux, iPhone, iPad and Android.</p></div></details>
+        <details><summary>Where are my files?</summary><div><p>On your device, as ordinary files in a folder you choose. Export to PDF, EPUB, Word, Markdown or HTML whenever you like.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · Final -->
+  <section class="final" aria-label="Download Inkblot">
+    <div class="wrap final__inner">
+      <h2 class="display final__title">Write.</h2>
+      <div class="download">
+        <a class="btn btn--primary btn--hero" href="#download-all" data-download><span data-download-label>Download free</span></a>
+        <p class="meta">Free · macOS, Windows, Linux, iOS, iPadOS, Android</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="site-footer__row">
+      <span class="wordmark" role="img" aria-label="inkblot"></span>
+      <div class="theme-switch" role="group" aria-label="Theme">
+        <button type="button" data-set-theme="auto">Auto</button>
+        <button type="button" data-set-theme="paper">Paper</button>
+        <button type="button" data-set-theme="ink">Ink</button>
+        <button type="button" data-set-theme="black">Black</button>
+      </div>
+    </div>
+    <div class="site-footer__row">
+      <ul>
+        <li><a href="#world">The world</a></li>
+        <li><a href="#book">The book</a></li>
+        <li><a href="#pledge">No-AI pledge</a></li>
+        <li><a href="#price">Founding Writer</a></li>
+        <li><a href="#top">Changelog</a></li>
+        <li><a href="#top">Privacy</a></li>
+      </ul>
+      <p>© 2026 [Soupy Orange Cats Co-op]</p>
+    </div>
+    <p class="meta">No analytics, no cookies.</p>
+  </div>
+</footer>
+</body>
+</html>

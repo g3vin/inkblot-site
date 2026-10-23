@@ -1,0 +1,30 @@
+---
+/**
+ * DownloadBand — the download offered again mid-page, straight after the book, where
+ * wanting it peaks. One line and the button with its spec line; quieter than the hero's.
+ */
+import DownloadButton from './DownloadButton.astro'
+import SpecLine from './SpecLine.astro'
+import HandRule from './HandRule.astro'
+
+interface Props { line: string }
+const { line } = Astro.props
+---
+<section class="dl-band" aria-label="Download">
+  <HandRule seed={2} wrap />
+  <div class="wrap dl-band__row">
+    <p class="dl-band__line">{line}</p>
+    <div class="dl-band__act">
+      <DownloadButton />
+      <SpecLine />
+    </div>
+  </div>
+</section>
+
+<style>
+  .dl-band { position: relative; background: var(--bg-sunk); --rule-color: var(--line-strong); padding-block: clamp(2.5rem, 5vw, 4rem); }
+  .dl-band__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem 3rem; }
+  .dl-band__line { font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; max-width: 22ch; }
+  .dl-band__act { display: grid; gap: 0.6rem; justify-items: end; text-align: right; }
+  @media (max-width: 700px) { .dl-band__act { justify-items: stretch; width: 100%; text-align: left; } }
+</style>
