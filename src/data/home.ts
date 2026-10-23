@@ -40,9 +40,8 @@ export const HOME = {
   notes: {
     title: 'Notes that stay with the words.',
     body: "Leave a photo, a voice memo or a question on the exact phrase it's about, not at the bottom of a file.",
-    // A line from the sample book, with the phrase the note is pinned to.
-    passage: { before: 'She had promised her father she would ', anchor: 'light it at dusk', after: '. It was well past dusk. The sea had gone the colour of slate, then of nothing at all.' },
-    note: '[Note — a photo of the lamp, and a 0:42 voice memo]',
+    // The app's own capture (screens.ts): a passage with a note pinned to "light it at dusk".
+    screen: 'notes',
   },
 
   night: {

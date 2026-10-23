@@ -32,6 +32,11 @@ const WORDS: Record<string, Omit<Screen, 'id' | 'shot'>> = {
     aspect: '16 / 9',
     placeholder: '[APP SCREENSHOT — the editor in the dark theme]',
   },
+  notes: {
+    alt: 'A passage in Inkblot with a note pinned beside the words “light it at dusk”: a photo of a lighthouse lamp and a 42-second voice memo, tied to the phrase by a thread.',
+    aspect: '23 / 8',
+    placeholder: '[APP CAPTURE — a passage with a note pinned to “light it at dusk”: a photo of the lamp and a 0:42 voice memo]',
+  },
   review: {
     alt: 'A chapter with a reader’s notes beside it, each anchored to a line.',
     aspect: '21 / 9',
