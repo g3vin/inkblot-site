@@ -1,0 +1,6 @@
+---
+/** The lowercase "inkblot" wordmark, drawn in the theme's ink (or on-media white). */
+interface Props { onMedia?: boolean }
+const { onMedia = false } = Astro.props
+---
+<span class:list={['wordmark', { 'wordmark--on-media': onMedia }]} role="img" aria-label="inkblot"></span>

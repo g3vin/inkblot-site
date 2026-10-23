@@ -1,0 +1,112 @@
+---
+/**
+ * NotesSection — "Notes that stay with the words." A line from the sample book, set like
+ * writing, with a note pinned to one phrase. When the passage is half in view, the
+ * phrase is underlined, the note settles beside it and a thread is drawn between them:
+ * once, in one beat, like pressing a pin home.
+ *
+ * Without script or under reduced motion everything is already in place.
+ */
+import Slot from './Slot.astro'
+import HandRule from './HandRule.astro'
+
+interface Props {
+  title: string
+  body: string
+  passage: { before: string; anchor: string; after: string }
+  note: string
+}
+const { title, body, passage, note } = Astro.props
+---
+<section class="section notes" id="notes" aria-labelledby="notes-title">
+  <HandRule seed={3} wrap />
+  <div class="wrap notes__grid">
+    <div class="notes__head">
+      <h2 class="display notes__title" id="notes-title">{title}</h2>
+      <p class="notes__body">{body}</p>
+    </div>
+    <figure class="notes__page" aria-label="A passage with a note pinned to the phrase “light it at dusk”">
+      <p class="notes__passage">{passage.before}<mark class="notes__anchor">{passage.anchor}</mark>{passage.after}</p>
+      <svg class="notes__thread" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path pathLength="1" /></svg>
+      <div class="notes__note"><Slot label={note} aspect="4 / 3" /></div>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .notes { position: relative; background: var(--bg); --rule-color: var(--line-strong); }
+  .notes__grid { display: grid; gap: 2rem clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: center; }
+  .notes__head { display: grid; gap: 1.25rem; }
+  .notes__title { font-size: var(--step-4); max-width: 10ch; }
+  .notes__body { max-width: 38ch; color: var(--text-2); text-wrap: pretty; }
+  @media (max-width: 900px) {
+    .notes__grid { grid-template-columns: 1fr; }
+    .notes__title { font-size: var(--step-3); max-width: 14ch; }
+  }
+
+  /* A page of the manuscript: the passage on the left, the note in the margin */
+  .notes__page {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start;
+    background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--radius-card);
+    padding: clamp(1.5rem, 4vw, 3rem); box-shadow: 0 1px 0 var(--tile-edge), 0 24px 60px -30px rgba(0, 0, 0, 0.3);
+    container-type: inline-size;
+  }
+  .notes__passage { font: 400 var(--step-1)/1.7 var(--font-read); color: var(--text); text-wrap: pretty; }
+  .notes__anchor {
+    background: none; color: inherit; position: relative;
+    background-image: linear-gradient(var(--brand), var(--brand));
+    background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 2px;
+    padding-bottom: 1px;
+  }
+  .notes__note { margin-top: 2.2em; }
+  .notes__note :global(.slot) { border-radius: var(--radius-card); border-style: solid; border-color: color-mix(in srgb, var(--brand) 45%, transparent); }
+  .notes__thread { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .notes__thread path { fill: none; stroke: var(--brand); stroke-width: 1.25; stroke-dasharray: 1; stroke-dashoffset: 0; vector-effect: non-scaling-stroke; }
+  @container (max-width: 520px) {
+    .notes__page { grid-template-columns: 1fr; }
+    .notes__note { margin-top: 0; }
+    .notes__thread { display: none; }
+  }
+
+  /* With script, the moment waits until the page is half in view */
+  :global(.js) .notes:not(.is-static) .notes__anchor { background-size: 0% 2px; transition: background-size var(--dur-slow) var(--ease-out); }
+  :global(.js) .notes:not(.is-static) .notes__note { opacity: 0; transform: translateY(-8px); transition: opacity var(--dur-slow) var(--ease-out) 120ms, transform var(--dur-slow) var(--ease-out) 120ms; }
+  :global(.js) .notes:not(.is-static) .notes__thread path { stroke-dashoffset: 1; transition: stroke-dashoffset calc(var(--dur-slow) * 1.5) var(--ease-out) 360ms; }
+  :global(.js) .notes.is-pinned .notes__anchor { background-size: 100% 2px; }
+  :global(.js) .notes.is-pinned .notes__note { opacity: 1; transform: none; }
+  :global(.js) .notes.is-pinned .notes__thread path { stroke-dashoffset: 0; }
+</style>
+
+<script>
+  import { reduceMotion } from '../scripts/frame'
+
+  document.querySelectorAll<HTMLElement>('.notes').forEach((section) => {
+    const page = section.querySelector<HTMLElement>('.notes__page')!
+    const anchor = section.querySelector<HTMLElement>('.notes__anchor')!
+    const note = section.querySelector<HTMLElement>('.notes__note')!
+    const svg = section.querySelector<SVGSVGElement>('.notes__thread')!
+    const path = svg.querySelector('path')!
+
+    // The thread runs from the end of the phrase to the note's top-left corner.
+    function thread() {
+      const p = page.getBoundingClientRect(), a = anchor.getClientRects(), n = note.getBoundingClientRect()
+      const last = a[a.length - 1]
+      if (!last) return
+      svg.setAttribute('viewBox', `0 0 ${p.width} ${p.height}`)
+      const x1 = last.right - p.left, y1 = last.bottom - p.top + 2
+      const x2 = n.left - p.left, y2 = n.top - p.top + 12
+      path.setAttribute('d', `M${x1.toFixed(1)} ${y1.toFixed(1)} C${(x1 + (x2 - x1) * 0.5).toFixed(1)} ${y1.toFixed(1)} ${(x1 + (x2 - x1) * 0.5).toFixed(1)} ${y2.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`)
+    }
+    thread()
+    document.fonts?.ready.then(thread)
+    new ResizeObserver(thread).observe(page)
+    // The note settles 8px; measure again where it lands.
+    note.addEventListener('transitionend', thread)
+
+    if (reduceMotion || !('IntersectionObserver' in window)) { section.classList.add('is-static'); return }
+    const io = new IntersectionObserver((es) => {
+      if (es[0].isIntersecting) { section.classList.add('is-pinned'); io.disconnect() }
+    }, { threshold: 0.5 })
+    io.observe(page)
+  })
+</script>

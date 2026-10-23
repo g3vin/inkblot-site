@@ -1,0 +1,111 @@
+---
+/**
+ * PledgeBand — the protections on black. A hidden reader's mark shows under the cursor,
+ * like UV light on a banknote, to show what "marked to every reader" means. On touch it
+ * sweeps across once when the band comes into view, then rests; under reduced motion
+ * it's a still pool.
+ */
+interface Props {
+  title: string
+  items: { title: string; text: string }[]
+  hint: string
+  mark: string
+  /** Left out while the page it points to isn't built. */
+  link?: { label: string; href: string }
+}
+import Horizon from './Horizon.astro'
+const { title, items, hint, mark, link } = Astro.props
+const markLines = Array.from({ length: 60 }, (_, i) => (i % 2 ? '' : '  ') + mark.repeat(6))
+---
+<section class="section pledge" id="pledge" aria-labelledby="pledge-title">
+  <div class="pledge__mark" aria-hidden="true"><div class="pledge__text">{markLines.map((l) => <p>{l}</p>)}</div></div>
+  <div class="pledge__horizon"><Horizon /></div>
+  <div class="wrap pledge__body">
+    <h2 class="display pledge__title" id="pledge-title">{title}</h2>
+    <ul class="pledge__list">
+      {items.map((it) => <li><h3>{it.title}</h3><p>{it.text}</p></li>)}
+    </ul>
+    <p class="pledge__hint">{hint}</p>
+    {link && <a class="link" href={link.href}>{link.label}</a>}
+  </div>
+</section>
+
+<style>
+  .pledge {
+    --text: var(--protect-text); --text-2: var(--protect-text-2); --brand: var(--protect-brand);
+    position: relative; overflow: hidden; isolation: isolate; background: #000; color: var(--text);
+  }
+  .pledge__title { font-size: calc(var(--step-fill) * 0.3); max-width: 14ch; margin-bottom: 2.5rem; }
+  .pledge__list {
+    list-style: none; margin: 0 0 2rem; padding: 1.5rem 0 0;
+    display: grid; gap: 2rem 2.5rem; grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 2px solid var(--text);
+  }
+  @media (max-width: 900px) { .pledge__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .pledge__list { grid-template-columns: 1fr; } }
+  .pledge__list h3 { font: 700 var(--step-2)/1.05 var(--font-ui); letter-spacing: -0.04em; margin-bottom: 0.6rem; }
+  .pledge__list p { font: 400 0.9375rem/1.5 var(--font-ui); color: var(--text-2); }
+  .pledge__mark {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    -webkit-mask-image: radial-gradient(circle at var(--ux, -999px) var(--uy, -999px), #000 0, rgba(0, 0, 0, 0.6) calc(var(--ur, 0px) * 0.5), transparent var(--ur, 0px));
+    mask-image: radial-gradient(circle at var(--ux, -999px) var(--uy, -999px), #000 0, rgba(0, 0, 0, 0.6) calc(var(--ur, 0px) * 0.5), transparent var(--ur, 0px));
+  }
+  .pledge__text {
+    position: absolute; inset: -30%; transform: rotate(-12deg); opacity: 0.85;
+    font: 400 0.8125rem/2.4 var(--font-type); letter-spacing: 0.08em; white-space: nowrap; color: var(--protect-brand);
+  }
+  .pledge__body, .pledge__horizon { position: relative; z-index: 1; }
+  .pledge__hint { margin-bottom: 1.25rem; max-width: 52ch; font: 400 0.9375rem/1.5 var(--font-ui); color: #a69f93; }
+  :global(html:not(.js)) .pledge__mark, :global(html:not(.js)) .pledge__hint { display: none; }
+</style>
+
+<script>
+  import { add, kick, ease, lerp, finePointer, reduceMotion } from '../scripts/frame'
+
+  document.querySelectorAll<HTMLElement>('.pledge').forEach((pledge) => {
+    const cur = { x: -999, y: -999, r: 0 }, tgt = { x: 0, y: 0, r: 0 }
+    const set = () => {
+      pledge.style.setProperty('--ux', `${cur.x.toFixed(1)}px`)
+      pledge.style.setProperty('--uy', `${cur.y.toFixed(1)}px`)
+      pledge.style.setProperty('--ur', `${cur.r.toFixed(1)}px`)
+    }
+    if (!finePointer) {
+      // One sweep, left to right, over 2.4 s (10 × --dur-slow), then it rests where the
+      // reduced-motion pool sits.
+      let t0 = -1, started = false
+      const io = new IntersectionObserver((es) => {
+        if (es[0].isIntersecting) { started = true; io.disconnect(); kick() }
+      }, { threshold: 0.4 })
+      io.observe(pledge)
+      add(pledge, {
+        tick(t) {
+          if (!started) return false
+          const w = pledge.clientWidth, h = pledge.clientHeight
+          if (t0 < 0) t0 = t
+          const k = reduceMotion ? 1 : Math.min(1, (t - t0) / 2400)
+          cur.x = w * (0.12 + 0.6 * ease(k))
+          cur.y = h * (0.62 - 0.17 * ease(k))
+          cur.r = Math.min(150, w * 0.35)
+          set()
+          return k < 1
+        },
+      })
+      return
+    }
+    pledge.addEventListener('pointermove', (e) => {
+      const r = pledge.getBoundingClientRect()
+      tgt.x = e.clientX - r.left; tgt.y = e.clientY - r.top; tgt.r = 260
+      if (!cur.r) { cur.x = tgt.x; cur.y = tgt.y }
+      kick()
+    })
+    pledge.addEventListener('pointerleave', () => { tgt.r = 0; kick() })
+    add(pledge, {
+      tick() {
+        const k = reduceMotion ? 1 : 0.18
+        cur.x = lerp(cur.x, tgt.x, k); cur.y = lerp(cur.y, tgt.y, k); cur.r = lerp(cur.r, tgt.r, reduceMotion ? 1 : 0.12)
+        set()
+        return Math.abs(cur.x - tgt.x) + Math.abs(cur.y - tgt.y) + Math.abs(cur.r - tgt.r) > 0.5
+      },
+    })
+  })
+</script>

@@ -1,0 +1,94 @@
+/* Direction C · The atlas — worldbuilding first. A drawn graticule behind the hero,
+ * the journey as a route, the world tools as a bento of app windows. */
+
+/* Hero */
+.hero { position: relative; isolation: isolate; overflow: hidden; padding-bottom: clamp(2rem, 5vw, 4rem); }
+.hero__grid { position: absolute; inset: 0; width: 100%; height: 78%; z-index: -1; color: var(--line-strong); }
+.hero__route { stroke: var(--brand); }
+.hero__stops { fill: var(--brand); }
+.hero__body { display: grid; gap: 1.25rem; padding-block: clamp(2.5rem, 6vw, 5rem) clamp(2rem, 4vw, 3rem); }
+.hero__title { font-size: var(--step-fill); letter-spacing: var(--tracking-hero); line-height: 0.8; margin-left: -0.06em; }
+.hero__rule { height: 2px; background: var(--text); }
+.hero__row { display: grid; gap: 2rem 4rem; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; }
+@media (max-width: 860px) { .hero__row { grid-template-columns: 1fr; } }
+.hero__line { font: 700 var(--step-2)/1.12 var(--font-display); letter-spacing: -0.035em; max-width: 24ch; text-wrap: balance; }
+.btn--hero { min-height: 52px; padding-inline: 1.5rem; font-size: 1.0625rem; }
+.hero__window { margin-top: 0.5rem; }
+
+/* Trust */
+.trust { border-block: 1px solid var(--line); }
+.trust__row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem 2rem; padding-block: 1.25rem; }
+.trust__row .ui { font-weight: 600; font-size: var(--step-1); letter-spacing: -0.02em; }
+
+/* Route */
+.journey .h2 { margin-top: 0.75rem; max-width: 20ch; }
+.route { list-style: none; margin: 3rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.5rem; position: relative; }
+.route::before {
+  content: ''; position: absolute; left: 6px; right: 0; top: 6px; height: 0;
+  border-top: 2px dashed var(--brand);
+}
+.route li { position: relative; padding-top: 2rem; display: grid; gap: 0.35rem; align-content: start; }
+.route li::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--bg); border: 2px solid var(--brand);
+}
+.route li:first-child::before, .route li:last-child::before { background: var(--brand); }
+.route p { font: 400 0.9375rem/1.5 var(--font-ui); color: var(--text-2); }
+@media (max-width: 860px) {
+  .route { grid-template-columns: 1fr; gap: 1.75rem; padding-left: 2rem; }
+  .route::before { left: 6px; right: auto; top: 6px; bottom: 6px; height: auto; border-top: 0; border-left: 2px dashed var(--brand); }
+  .route li { padding-top: 0; }
+  .route li::before { left: -2rem; top: 4px; }
+}
+
+/* World bento */
+.world { background: var(--bg-sunk); }
+.world__head { display: grid; gap: 0.75rem; margin-bottom: 2.5rem; max-width: 44rem; }
+.bento { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: 2rem 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bento li { display: grid; gap: 0.5rem; align-content: start; }
+.bento .slot { margin-bottom: 0.4rem; border-radius: var(--radius-card); }
+.bento p { font: 400 0.9375rem/1.5 var(--font-ui); color: var(--text-2); max-width: 46ch; }
+.bento__map { grid-column: span 2; grid-row: span 2; }
+.bento__map .h3 { font-size: var(--step-2); }
+.bento__wide { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bento__map { grid-column: 1 / -1; grid-row: auto; }
+}
+@media (max-width: 560px) {
+  .bento { grid-template-columns: 1fr; }
+  .bento__wide .slot { --ar: 16 / 9 !important; }
+}
+
+/* Book */
+.book__grid { display: grid; gap: 3rem; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; }
+@media (max-width: 900px) { .book__grid { grid-template-columns: 1fr; } }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.facts li { border-top: 1px solid var(--line-strong); padding-top: 0.4rem; }
+
+/* Pledge */
+.pledge { border-top: 1px solid var(--line); }
+.pledge__grid { display: grid; gap: 2rem 4rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+@media (max-width: 860px) { .pledge__grid { grid-template-columns: 1fr; } }
+.pledge .h2 { max-width: 14ch; }
+.pledge__small { font-size: var(--step--1); color: var(--text-muted); }
+
+/* Proof */
+.proof { background: var(--bg-sunk); }
+.proof .h2 { margin: 0.75rem 0 2rem; }
+.proof__grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+@media (max-width: 860px) { .proof__grid { grid-template-columns: 1fr; } }
+
+/* Price */
+.price__grid { display: grid; gap: 2rem 4rem; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.price .h2 { font-size: var(--step-4); }
+@media (max-width: 760px) { .price__grid { grid-template-columns: 1fr; } }
+
+/* FAQ */
+.faq-wrap { display: grid; gap: 2rem; grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr); }
+@media (max-width: 860px) { .faq-wrap { grid-template-columns: 1fr; } }
+
+/* Final */
+.final { padding-block: var(--section); border-top: 1px solid var(--line); }
+.final__inner { display: grid; gap: 2rem; }
+.final__title { font-size: var(--step-fill); letter-spacing: var(--tracking-hero); line-height: 0.8; margin-left: -0.06em; }

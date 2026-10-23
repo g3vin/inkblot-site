@@ -1,0 +1,199 @@
+/* Inkblot website — final tokens (direction M, chosen 16 October 2026).
+ *
+ * One file, defined once, used by every page and component. Values mirror the app's
+ * src/styles/tokens.css for paper, ink and Pitch black. The one difference is the brand
+ * green: the site uses Sage (rated 5/5), while the app still uses Deep fern until the
+ * owner decides whether the app follows.
+ *
+ * Themes: no data-theme attribute follows the visitor's system (Paper or Ink). The site
+ * has no theme switch. data-theme="ink" | "black" exists for previews and for Pitch black
+ * sections, which pin their own tokens below.
+ */
+
+/* ── Faces: self-hosted, Latin subset, with metric-matched fallbacks (no CLS on swap) */
+@font-face {
+  font-family: 'Inter Var';
+  src: url('fonts/inter-opsz.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Literata';
+  src: url('fonts/literata-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Literata';
+  src: url('fonts/literata-400i.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Courier Prime';
+  src: url('fonts/courier-prime-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+/* Fallbacks sized to the web faces (computed with fontTools against the system files) */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Roboto');
+  size-adjust: 105.1%;
+  ascent-override: 92.2%;
+  descent-override: 22.9%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Literata Fallback';
+  src: local('Georgia'), local('Times New Roman');
+  size-adjust: 104.4%;
+  ascent-override: 112.7%;
+  descent-override: 29.5%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Courier Fallback';
+  src: local('Courier New'), local('Courier');
+  size-adjust: 99.9%;
+  ascent-override: 78.2%;
+  descent-override: 34.2%;
+  line-gap-override: 0%;
+}
+
+:root {
+  /* Type */
+  --font-display: 'Inter Var', 'Inter Fallback', system-ui, sans-serif;
+  --font-ui: 'Inter Var', 'Inter Fallback', system-ui, sans-serif;
+  --font-read: 'Literata', 'Literata Fallback', Georgia, serif;
+  --font-type: 'Courier Prime', 'Courier Fallback', 'Courier New', monospace;
+  --tracking-display: -0.045em;
+  --tracking-hero: -0.065em;
+
+  /* Fluid scale (375 → 1440) */
+  --step--1: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);
+  --step-0: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);   /* body: 17 → 19px */
+  --step-1: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+  --step-3: clamp(2.2rem, 1.6rem + 2.8vw, 4rem);
+  --step-4: clamp(3rem, 2rem + 5vw, 6.5rem);
+  --step-hero: clamp(6.5rem, 2rem + 24vw, 22rem);
+  /* "Write." set to fill the content width (the word is ~2.38em wide; 2.46 leaves room) */
+  --step-fill: min(calc((min(100vw, var(--wide) + 2 * var(--gutter)) - 2 * var(--gutter)) / 2.46), 36rem);
+
+  --measure: 66ch;
+  --leading: 1.6;
+  --radius-btn: 8px;
+  --radius-card: 12px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --section: clamp(4rem, 3rem + 6vw, 9rem);
+  --wide: 1240px;
+
+  /* Paper (light) — the default */
+  --bg: #faf8f4;
+  --bg-raised: #fffefb;
+  --bg-sunk: #f3f0ea;
+  --line: #ebe7df;
+  --line-strong: #d9d3c8;
+  --text: #1f1c18;
+  --text-2: #48423a;
+  --text-muted: #6b645a;
+  --brand: #3f5a3a;          /* Sage: 7.2:1 on paper; white on it 7.7:1 */
+  --brand-strong: #2f472b;
+  --on-brand: #ffffff;
+  --mark: #1f1c18;
+  --tile: #fffefb;
+  --tile-edge: rgba(40, 32, 20, 0.16);
+  --focus: #3f5a3a;
+  --scrim: rgba(18, 16, 13, 0.62);
+  --on-media: #faf8f4;
+  --slot-bg: #f0ece4;
+  --slot-ink: #6b645a;
+  --night-bg: #000000;
+  --night-text: #c9a273;     /* Ember: 8.9:1 on black */
+  --night-muted: #a08060;    /* 6.0:1 on black (the app's raised tier) */
+  --night-brand: #8aa86c;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #161412;
+    --bg-raised: #1d1b18;
+    --bg-sunk: #24211d;
+    --line: #2d2a25;
+    --line-strong: #3d3933;
+    --text: #f2eee6;
+    --text-2: #d8d2c6;
+    --text-muted: #a69f93;
+    --brand: #a7bc94;            /* Sage, night: 9.0:1 on Ink */
+    --brand-strong: #c0d0b1;
+    --on-brand: #14120f;
+    --mark: #f2eee6;
+    --tile: #24211d;
+    --tile-edge: rgba(255, 244, 222, 0.16);
+    --focus: #a7bc94;
+    --slot-bg: #1f1c19;
+    --slot-ink: #a69f93;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='ink'] {
+  --bg: #161412;
+  --bg-raised: #1d1b18;
+  --bg-sunk: #24211d;
+  --line: #2d2a25;
+  --line-strong: #3d3933;
+  --text: #f2eee6;
+  --text-2: #d8d2c6;
+  --text-muted: #a69f93;
+  --brand: #a7bc94;            /* Sage, night: 9.0:1 on Ink */
+  --brand-strong: #c0d0b1;
+  --on-brand: #14120f;
+  --mark: #f2eee6;
+  --tile: #24211d;
+  --tile-edge: rgba(255, 244, 222, 0.16);
+  --focus: #a7bc94;
+  --slot-bg: #1f1c19;
+  --slot-ink: #a69f93;
+  color-scheme: dark;
+}
+
+:root[data-theme='black'] {
+  --bg: #000000;
+  --bg-raised: #0b0a09;
+  --bg-sunk: #12100e;
+  --line: #1a1714;
+  --line-strong: #2a251f;
+  --text: #c9a273;
+  --text-2: #b38f66;
+  --text-muted: #a08060;
+  --brand: #8aa86c;
+  --brand-strong: #a3bd88;
+  --on-brand: #000000;
+  --mark: #c9a273;
+  --tile: #12100e;
+  --tile-edge: rgba(201, 162, 115, 0.22);
+  --focus: #8aa86c;
+  --on-media: #e9d6bb;
+  --slot-bg: #0d0b0a;
+  --slot-ink: #a08060;
+  color-scheme: dark;
+}
+
+/* ── Fixed surfaces that never follow the theme (they sit over pictures or on black) */
+:root {
+  --on-media: #faf8f4;              /* type over footage and photographs */
+  --on-media-ink: #14120f;          /* text on the paper-white button over footage */
+  --scrim-rgb: 10, 12, 9;           /* rgba(var(--scrim-rgb), a) for footage darkening */
+  --act-bg: #12100e;                /* the marketplace's dark ground */
+  --night-line: #2a251f;            /* rules and window edges on black */
+  --night-raised: #0b0a09;
+  --night-slot: #0d0b0a;
+  --protect-text: #f2eee6;          /* the protections band on black: 18.3:1 */
+  --protect-text-2: #d8d2c6;
+  --protect-brand: #a7bc94;
+}
+:root[data-theme='black'] { --on-media: #e9d6bb; }

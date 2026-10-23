@@ -1,0 +1,13 @@
+---
+/**
+ * SpecLine — the Courier line under a download button: price, what the device needs,
+ * size, and "No account". It names every platform until scripts/device.ts knows
+ * the visitor's, then shows that one's. Anything slotted in follows on the same line.
+ */
+import { PLATFORMS, SPEC_ANY } from '../data/release'
+
+interface Props { class?: string }
+const { class: className } = Astro.props
+const specs = Object.fromEntries(PLATFORMS.map((p) => [`data-spec-${p.id}`, p.spec]))
+---
+<p class:list={['meta', 'spec', className]}><span data-spec {...specs}>{SPEC_ANY}</span><slot /></p>

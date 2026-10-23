@@ -1,0 +1,56 @@
+---
+/**
+ * Footer — the end of every page: the closing "Write." with the download, its spec line
+ * (with the latest release on the end), then one row of wordmark, links and the legal
+ * line. It follows the page's colour.
+ */
+import Wordmark from './Wordmark.astro'
+import DownloadButton from './DownloadButton.astro'
+import PlatformRow from './PlatformRow.astro'
+import SpecLine from './SpecLine.astro'
+import HandRule from './HandRule.astro'
+import { FOOTER_NAV, isLive } from '../data/nav'
+import { SITE } from '../data/site'
+import { RELEASE } from '../data/release'
+
+interface Props { title?: string }
+const { title = 'Write.' } = Astro.props
+const year = new Date().getFullYear()
+---
+<footer class="end">
+  <div class="wrap end__cta" id="download-end">
+    <p class="display end__title">{title}</p>
+    <div class="end__act">
+      <DownloadButton />
+      <SpecLine>
+        {' · '}<time datetime={RELEASE.dateTime} title={`Released ${RELEASE.date}`}>v{RELEASE.version}</time>
+        {isLive(RELEASE.notes) && <> · <a href={RELEASE.notes}>What's new</a></>}
+      </SpecLine>
+      <PlatformRow />
+    </div>
+  </div>
+  <div class="wrap end__meta">
+    <HandRule seed={4} />
+    <Wordmark />
+    <ul class="end__links-nav">{FOOTER_NAV.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+    <p class="meta end__legal">© {year} {SITE.owner} · <a href={SITE.licence.url}>{SITE.licence.name}</a> · No cookies.</p>
+  </div>
+</footer>
+
+<style>
+  .end { background: var(--bg-sunk); color: var(--text); padding-bottom: 2rem; }
+
+  .end__cta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem 3rem; border-top: 1px solid var(--line-strong); padding-block: clamp(3rem, 6vw, 5rem); }
+  .end__title { font-size: var(--step-4); letter-spacing: -0.06em; line-height: 0.85; }
+  .end__act { display: grid; gap: 0.75rem; justify-items: end; text-align: right; }
+  .end__act .meta a { color: var(--text-2); text-underline-offset: 0.2em; }
+  @media (max-width: 700px) { .end__act { justify-items: stretch; width: 100%; text-align: left; } }
+  .end__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1rem 2rem; position: relative; --rule-color: var(--line-strong); --rule-inset: var(--gutter); padding-top: 1.5rem; font: 400 0.9375rem/1.6 var(--font-ui); color: var(--text-muted); }
+  .end__links-nav { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; list-style: none; margin: 0; padding: 0; }
+  .end__links-nav a, .end__meta .meta a { color: var(--text-2); text-underline-offset: 0.2em; }
+  .end__legal { margin-left: auto; }
+  /* The wordmark's box sits on the line by its bottom edge; its letters stand 50/1184 of
+     its height above that, so pull the box down to put the letters on the baseline. */
+  .end__meta :global(.wordmark) { margin-bottom: calc(1.6rem * -50 / 1184); }
+  @media (max-width: 700px) { .end__legal { margin-left: 0; } }
+</style>

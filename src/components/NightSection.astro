@@ -1,0 +1,115 @@
+---
+/**
+ * NightSection — always black. The words sit in a pool of darkness from the start; as the
+ * section scrolls up the screen the pool spreads out from around them until it fills the
+ * section, like ink taking a page, and the editor in Pitch black fades in beside them. It
+ * doesn't pin: it plays while the reader scrolls, and is fully open by the time the
+ * section's middle reaches the middle of the screen. Its edges move only as you scroll, so
+ * it settles when you stop.
+ *
+ * With no script, or under reduced motion, it's a plain black section with the pool's
+ * soft edges top and bottom.
+ */
+import AppWindow from './AppWindow.astro'
+
+interface Props { title: string; screen: string }
+const { title, screen } = Astro.props
+---
+<section class="night" aria-labelledby="night-title">
+  <div class="night__stage">
+    <svg class="night__pool" aria-hidden="true" focusable="false"><path /></svg>
+    <div class="wrap night__inner">
+      <div class="night__words">
+        <h2 class="display night__title" id="night-title">{title}</h2>
+      </div>
+      <AppWindow screen={screen} variant="night" class="night__window" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .night { background: var(--night-bg); color: var(--night-text); }
+  .night__stage { position: relative; display: grid; align-items: center; padding-block: var(--section); }
+  .night__pool { display: none; }
+  .night__inner { position: relative; display: grid; gap: 2rem clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: center; }
+  .night__words { display: grid; gap: 1.25rem; justify-self: start; }
+  .night__title { font-size: var(--step-4); max-width: 11ch; color: var(--night-text); }
+  @media (max-width: 860px) {
+    .night__inner { grid-template-columns: 1fr; }
+    .night__title { font-size: var(--step-3); }
+  }
+
+  :global(.js) .night:not(.is-static) { background: transparent; }
+  :global(.js) .night:not(.is-static) .night__stage { min-height: 100svh; padding-block: 0; overflow-x: clip; }
+  /* The pool may spill over the section's top edge, like ink running off a page; the sides are clipped. */
+  :global(.js) .night__pool { display: block; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  :global(.js) .night.is-static .night__pool { inset: -5% 0; height: 110%; }
+  .night__pool path { fill: var(--night-bg); }
+  :global(.js) .night:not(.is-static) :global(.night__window) { opacity: var(--reveal, 0); }
+  @media (max-width: 860px) {
+    :global(.js) .night:not(.is-static) :global(.night__window) { max-height: 34svh; }
+  }
+</style>
+
+<script>
+  import { add, kick, ease, lerp, seg, clamp, closedCurve, reduceMotion } from '../scripts/frame'
+
+  document.querySelectorAll<HTMLElement>('.night').forEach((night) => {
+    const svg = night.querySelector<SVGSVGElement>('.night__pool')!
+    const path = svg.querySelector('path')!
+    const words = night.querySelector<HTMLElement>('.night__words')!
+    if (reduceMotion) night.classList.add('is-static')
+
+    let W = 0, H = 0
+    let box = { x: 0, y: 0, w: 0, h: 0 }
+    const N = 180
+    // [lobes, weight, phase, speed]: a few broad lobes that swell and drift, nothing
+    // fine enough to read as a splash.
+    const WAVES = [[2, 0.42, 0.3, 0.35], [3, 0.32, 1.7, -0.28], [4, 0.24, 2.2, 0.45], [6, 0.14, 0.9, -0.5]]
+
+    function size() {
+      W = svg.clientWidth; H = svg.clientHeight
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+      const s = svg.getBoundingClientRect(), r = words.getBoundingClientRect()
+      box = { x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height / 2, w: r.width, h: r.height }
+    }
+    function draw(e: number, time: number) {
+      const cx = lerp(box.x, W / 2, e), cy = lerp(box.y, H / 2, e)
+      // The first pool clears the words' corners with room for its wobble; the last runs off both sides.
+      const a = lerp(box.w * 0.62 + 72, W * 0.95, e), b = lerp(box.h * 0.7 + 72, H * 0.44, e)
+      const n = lerp(2.3, 3, e)
+      const amp = lerp(Math.min(a, b) * 0.13, H * 0.065, e) * (1 + 0.22 * Math.sin(time * 0.7)) * (1 - 0.6 * e)
+      const pts: [number, number][] = []
+      for (let i = 0; i < N; i++) {
+        const th = (i / N) * Math.PI * 2, c = Math.cos(th), s = Math.sin(th)
+        const rr = Math.pow(Math.pow(Math.abs(c) / a, n) + Math.pow(Math.abs(s) / b, n), -1 / n)
+        let w = 0
+        for (const [k, weight, phase, speed] of WAVES) w += weight * Math.sin(k * th + phase + time * speed)
+        pts.push([cx + c * (rr + amp * w), cy + s * (rr + amp * w)])
+      }
+      path.setAttribute('d', closedCurve(pts))
+    }
+
+    size()
+    if (reduceMotion) {
+      draw(1, 0)
+      window.addEventListener('resize', () => { size(); draw(1, 0) })
+      return
+    }
+    document.fonts?.ready.then(() => { size(); kick() })
+    add(night, {
+      resize: size,
+      tick() {
+        // 0 as the section's top enters at the bottom of the screen, 1 once its middle
+        // reaches the middle of the screen.
+        const r = night.getBoundingClientRect(), vh = window.innerHeight
+        const p = clamp((vh - r.top) / ((vh + r.height) / 2), 0, 1)
+        // The edge's phase follows the scroll, not the clock: it moves while the reader
+        // scrolls and is still when they stop (DESIGN.md §7: nothing loops).
+        draw(ease(seg(p, 0.15, 0.9)), p * 9)
+        night.style.setProperty('--reveal', ease(seg(p, 0.7, 1)).toFixed(3))
+        return false
+      },
+    })
+  })
+</script>

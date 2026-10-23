@@ -1,0 +1,97 @@
+---
+/**
+ * Hero — "Write." filling the width over a place's footage, one row under a hand-drawn rule (the
+ * line on the left, the download on the right). The footage fades into the brand green,
+ * which carries on behind whatever is slotted after it: the split window, rising over the
+ * hero's foot, then the Band.
+ */
+import MediaLoop from './MediaLoop.astro'
+import DownloadButton from './DownloadButton.astro'
+import PlatformRow from './PlatformRow.astro'
+import SpecLine from './SpecLine.astro'
+import HandRule from './HandRule.astro'
+
+interface Props { title: string; line: string[]; lede: string; place: string }
+const { title, line, lede, place } = Astro.props
+
+---
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <MediaLoop place={place} priority class="hero__media" />
+  <div class="wrap hero__body">
+    <h1 class="display hero__title" id="hero-title">{title}</h1>
+    <div class="hero__row" id="download">
+      <HandRule seed={1} />
+      <div class="hero__words">
+        <p class="hero__line">{line.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>
+        <p class="hero__lede">{lede}</p>
+      </div>
+      <div class="hero__act">
+        <DownloadButton variant="on-media" />
+        <SpecLine class="hero__spec" />
+        <PlatformRow />
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  // The pinned footage is out of the hero's flow, so it takes the hero's height from here.
+  const hero = document.querySelector<HTMLElement>('.hero')
+  if (hero && CSS.supports('animation-timeline: scroll()')) {
+    const size = () => hero.style.setProperty('--hero-h', `${hero.offsetHeight}px`)
+    new ResizeObserver(size).observe(hero); size()
+    hero.classList.add('is-pinned')
+  }
+</script>
+<div class="flow">
+  <slot />
+</div>
+
+<style>
+  .hero { position: relative; isolation: isolate; color: var(--on-media); }
+  .hero :global(.hero__media) { position: absolute; inset: 0; z-index: -1; }
+  /* Darken behind the type, then fade into the band's green over the last few inches.
+   * The fade's steps approximate an ease-out curve, so it has no visible starting edge. */
+  .hero :global(.hero__media)::after {
+    content: ''; position: absolute; inset: 0; z-index: 2;
+    background:
+      linear-gradient(180deg, transparent calc(100% - clamp(9rem, 15vw, 13rem)),
+        color-mix(in srgb, var(--brand) 12%, transparent) calc(100% - clamp(7rem, 11.5vw, 10rem)),
+        color-mix(in srgb, var(--brand) 38%, transparent) calc(100% - clamp(4.5rem, 7.5vw, 6.5rem)),
+        color-mix(in srgb, var(--brand) 72%, transparent) calc(100% - clamp(2rem, 3.5vw, 3rem)),
+        var(--brand) 100%),
+      radial-gradient(120% 90% at 20% 30%, rgba(var(--scrim-rgb), 0.34), transparent 70%),
+      linear-gradient(180deg, rgba(var(--scrim-rgb), 0.38) 0%, rgba(var(--scrim-rgb), 0.24) 30%, rgba(var(--scrim-rgb), 0.55) 62%, rgba(var(--scrim-rgb), 0.5) 100%);
+  }
+  /* Pinned to the window and moved up by the scroll itself, so it scrolls like the page, but a
+   * bounce at the top (where the scroll stays at 0) pulls everything else down off a still
+   * picture. Without scroll timelines it stays in the hero and bounces with the page. */
+  @supports (animation-timeline: scroll()) {
+    .hero.is-pinned :global(.hero__media) {
+      position: fixed; inset: 0 0 auto; height: var(--hero-h);
+      animation-name: hero-pin; animation-timing-function: linear; animation-fill-mode: both;
+    }
+    /* Its own rule, so the minifier can't fold the timeline into a shorthand browsers reject. */
+    .hero.is-pinned > :global(.hero__media) { animation-timeline: scroll(root); animation-range: 0px 10000px; }
+  }
+  @keyframes hero-pin { to { transform: translateY(-10000px); } }
+  .hero__body { display: grid; gap: clamp(1rem, 2vw, 1.75rem); padding-block: clamp(4.5rem, 7vw, 6rem) clamp(7rem, 11vw, 9.5rem); }
+  .hero__title { font-size: var(--step-fill); letter-spacing: var(--tracking-hero); line-height: 0.8; margin-left: -0.06em; color: var(--on-media); }
+  .hero__row {
+    position: relative;
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.5rem 3rem;
+    padding-top: clamp(1rem, 2vw, 1.5rem);
+  }
+  .hero__row { --rule-color: color-mix(in srgb, var(--on-media) 80%, transparent); --rule-width: 2; }
+  .hero__words { display: grid; gap: clamp(0.75rem, 1.5vw, 1.25rem); }
+  .hero__line { font: 700 var(--step-3)/1 var(--font-display); letter-spacing: -0.045em; }
+  /* The one sentence that says what Inkblot is, set like writing */
+  .hero__lede { font: 400 var(--step-1)/1.4 var(--font-read); max-width: 60ch; text-wrap: pretty; }
+  .hero__act { display: grid; gap: 0.75rem; justify-items: end; }
+  .hero__act :global(.platforms), .hero__act :global(.platforms a) { color: var(--on-media); }
+  .hero__act :global(.hero__spec) { color: var(--on-media); opacity: 0.9; text-align: right; }
+  .hero__line, .hero__lede, .hero__act :global(.hero__spec), .hero__act :global(.platforms) { text-shadow: 0 1px 14px rgba(var(--scrim-rgb), 0.35); }
+  @media (max-width: 700px) { .hero__act { justify-items: stretch; width: 100%; } .hero__act :global(.hero__spec) { text-align: left; } }
+
+  /* flow-root keeps the split window's negative margin inside, so the green starts at the hero's foot */
+  .flow { display: flow-root; position: relative; background: var(--brand); }
+</style>

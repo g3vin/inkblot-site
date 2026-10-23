@@ -1,0 +1,533 @@
+<meta charset="utf-8">
+<title>Inkblot Site Directions</title>
+<style>
+/* Review desk: one row per direction — live previews left, ratings right; the scores table on top. */
+@font-face { font-family: 'Inter Var'; src: url('shared/fonts/inter-opsz.woff2') format('woff2-variations'); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: 'Courier Prime'; src: url('shared/fonts/courier-prime-400.woff2') format('woff2'); font-display: swap; }
+:root {
+  --bg: #faf8f4; --panel: #fffefb; --sunk: #f3f0ea; --line: #e3ded4; --line-strong: #d0c9bc;
+  --text: #1f1c18; --text-2: #48423a; --muted: #6b645a;
+  --brand: #244a37; --on-brand: #ffffff; --star: #244a37; --star-off: #cfc8bb;
+  --good: #244a37; --warn: #94660f;
+  --ui: 'Inter Var', system-ui, sans-serif; --type: 'Courier Prime', 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #161412; --panel: #1d1b18; --sunk: #24211d; --line: #2d2a25; --line-strong: #3d3933;
+  --text: #f2eee6; --text-2: #d8d2c6; --muted: #a69f93;
+  --brand: #7dbb90; --on-brand: #14120f; --star: #7dbb90; --star-off: #4a453e; --good: #7dbb90; --warn: #e5b85c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #161412; --panel: #1d1b18; --sunk: #24211d; --line: #2d2a25; --line-strong: #3d3933;
+  --text: #f2eee6; --text-2: #d8d2c6; --muted: #a69f93;
+  --brand: #7dbb90; --on-brand: #14120f; --star: #7dbb90; --star-off: #4a453e; --good: #7dbb90; --warn: #e5b85c; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 15px/1.5 var(--ui); }
+.page { max-width: 1440px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); padding-block: 28px 80px; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.03em; }
+p { margin: 0; }
+.meta { font-family: var(--type); font-size: 13px; color: var(--muted); }
+.eyebrow { font: 700 11px/1.2 var(--ui); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+
+/* Masthead */
+.mast { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) auto; align-items: end; padding-bottom: 22px; border-bottom: 2px solid var(--text); }
+.mast h1 { font-size: clamp(28px, 4vw, 44px); line-height: 1; font-weight: 750; }
+.mast p { color: var(--text-2); max-width: 70ch; margin-top: 10px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; }
+.seg { display: inline-flex; padding: 3px; border: 1px solid var(--line-strong); border-radius: 999px; }
+.seg button { border: 0; background: none; padding: 6px 11px; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+.btn { border: 1px solid var(--line-strong); background: var(--panel); border-radius: 8px; padding: 8px 12px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.status { font-family: var(--type); font-size: 12px; color: var(--muted); min-height: 1.4em; }
+.status.warn { color: var(--warn); }
+@media (max-width: 760px) { .mast { grid-template-columns: 1fr; } .controls { justify-content: flex-start; } }
+
+/* Scores table */
+.scores { margin-top: 28px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+th, td { padding: 9px 10px; text-align: center; border-bottom: 1px solid var(--line); font-size: 13px; }
+th { font-weight: 600; color: var(--muted); font-size: 12px; vertical-align: bottom; }
+th:first-child, td:first-child { text-align: left; }
+td.avg { font-weight: 750; font-size: 15px; }
+tr.lead td.avg { color: var(--good); }
+td .bar { display: block; height: 3px; margin-top: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+td .bar i { display: block; height: 100%; background: var(--brand); }
+.empty { color: var(--muted); }
+
+/* Direction rows */
+.dir { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line-strong); display: grid; gap: 28px; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); }
+@media (max-width: 1080px) { .dir { grid-template-columns: 1fr; } }
+.dir__head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; justify-content: space-between; }
+.dir__head h2 { font-size: clamp(24px, 3vw, 34px); font-weight: 750; line-height: 1.05; }
+.dir__idea { color: var(--text-2); max-width: 72ch; }
+.dir__line { margin-top: 6px; }
+.dir__avg { font: 750 15px/1 var(--ui); color: var(--good); }
+
+.previews { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr) 31%; align-items: start; }
+.frame { position: relative; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--sunk); }
+.frame--desk { aspect-ratio: 1280 / 820; }
+.frame--phone { aspect-ratio: 390 / 780; border-radius: 22px; }
+.frame iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: #fff; }
+.frame--desk iframe { width: 1280px; height: 820px; }
+.frame--phone iframe { width: 390px; height: 780px; }
+.frame__label { margin-top: 6px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-weight: 600; font-size: 14px; }
+.links a { color: var(--brand); text-underline-offset: 3px; }
+.perf { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; }
+.perf span b { color: var(--text); font-weight: 400; }
+
+/* Rating panel */
+.rate { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 4px; align-content: start; }
+.crit { border: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); margin: 0; min-width: 0; }
+.crit:last-of-type { border-bottom: 0; }
+.crit legend { float: left; padding: 0; font-size: 14px; color: var(--text-2); }
+.stars { display: inline-flex; gap: 2px; direction: rtl; }
+.stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.stars label { cursor: pointer; font-size: 22px; line-height: 1; color: var(--star-off); padding: 2px; }
+.stars label:hover, .stars label:hover ~ label, .stars input:checked ~ label { color: var(--star); }
+.stars input:focus-visible + label { outline: 2px solid var(--brand); border-radius: 4px; }
+.field { display: grid; gap: 6px; margin-top: 12px; }
+.field label { font-weight: 600; font-size: 13px; }
+.field textarea, .field input { width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 9px 10px; background: var(--bg); min-width: 0; }
+.field textarea { min-height: 84px; resize: vertical; line-height: 1.45; }
+.general { margin-top: 48px; padding-top: 22px; border-top: 2px solid var(--text); display: grid; gap: 10px; max-width: 860px; }
+.general textarea { min-height: 120px; }
+.round1 { margin-top: 56px; border-top: 2px solid var(--text); padding-top: 18px; }
+.round1 > summary { cursor: pointer; font: 700 18px/1.3 var(--ui); letter-spacing: -0.02em; }
+.round1 .dir:first-child { margin-top: 24px; }
+dialog#viewer { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--text); }
+dialog#viewer::backdrop { background: rgba(0, 0, 0, 0.6); }
+.viewer__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 10px clamp(12px, 2vw, 20px); border-bottom: 1px solid var(--line); }
+.viewer__bar p { font-weight: 700; margin-right: auto; }
+.viewer__stage { height: calc(100% - 58px); display: flex; justify-content: center; background: var(--sunk); }
+.viewer__stage iframe { border: 0; width: 100%; height: 100%; background: #fff; }
+.viewer__stage.is-phone iframe { width: min(390px, 100%); border-inline: 1px solid var(--line-strong); }
+.seg .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.greens { margin-top: 48px; padding-top: 22px; border-top: 2px solid var(--text); }
+.greens__intro { color: var(--text-2); margin: 8px 0 14px; max-width: 70ch; }
+.green-row { display: grid; grid-template-columns: 9rem 5.5rem auto minmax(0, 1fr); gap: 12px 18px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.green-row h3 { font-size: 17px; }
+.green-row .pair { display: flex; gap: 6px; }
+.green-row .pair i { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); }
+.green-row input[type=text] { width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; background: var(--bg); min-width: 0; }
+@media (max-width: 760px) { .green-row { grid-template-columns: 1fr auto; } .green-row input[type=text] { grid-column: 1 / -1; } }
+.ideas { margin-top: 48px; padding-top: 22px; border-top: 2px solid var(--text); max-width: 860px; }
+.ideas ul { margin: 10px 0 0; padding-left: 1.2em; display: grid; gap: 6px; color: var(--text-2); }
+.copybox { width: 100%; min-height: 120px; margin-top: 10px; font: 12px/1.4 var(--type); }
+</style>
+
+<div class="page">
+  <header class="mast">
+    <div>
+      <p class="eyebrow">Inkblot website · round 7</p>
+      <h1>M, in motion</h1>
+      <p>N is M with the promise copy and moving parts, revised from your notes: a clean fade, a rounded spreading darkness, and a cut that opens on each row. They play as you scroll and hover, so open it with <b>View full screen</b>.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Preview theme">
+        <button type="button" data-theme-preview="auto" aria-pressed="true">Auto</button>
+        <button type="button" data-theme-preview="paper" aria-pressed="false">Paper</button>
+        <button type="button" data-theme-preview="ink" aria-pressed="false">Ink</button>
+        <button type="button" data-theme-preview="black" aria-pressed="false">Black</button>
+      </div>
+      <div class="seg" role="group" aria-label="Preview green">
+        <button type="button" data-green-preview="default" aria-pressed="true">Page default</button>
+        <button type="button" data-green-preview="fern" aria-pressed="false"><i class="sw" style="background:#244a37"></i>Fern</button>
+        <button type="button" data-green-preview="fernsage" aria-pressed="false"><i class="sw" style="background:linear-gradient(90deg,#244a37 50%,#a7bc94 50%)"></i>Fern / Sage</button>
+        <button type="button" data-green-preview="sage" aria-pressed="false"><i class="sw" style="background:#3f5a3a"></i>Sage</button>
+        <button type="button" data-green-preview="forest" aria-pressed="false"><i class="sw" style="background:#284a26"></i>Forest</button>
+      </div>
+      <button class="btn" type="button" id="copy-json">Copy ratings as JSON</button>
+      <p class="status" id="status" role="status" aria-live="polite">Connecting…</p>
+    </div>
+  </header>
+
+  <section class="scores" aria-labelledby="scores-title">
+    <h2 class="eyebrow" id="scores-title" style="margin-bottom:8px">Average scores</h2>
+    <table id="scores"></table>
+  </section>
+
+  <div id="dirs"></div>
+
+  <section class="greens" aria-labelledby="greens-title">
+    <h2 class="eyebrow" id="greens-title">The green</h2>
+    <p class="greens__intro">Sage won round 4 (5 stars) and is now K and L's default. Change a rating here if you see it differently on the new pages.</p>
+    <div id="greens"></div>
+  </section>
+
+  <section class="ideas" aria-labelledby="ideas-title">
+    <h2 class="eyebrow" id="ideas-title">More ideas in the same spirit (not built yet)</h2>
+    <ul>
+      <li><b>Read each other.</b> Margin notes write themselves in, pen-on-photo style, as the review window scrolls past.</li>
+      <li><b>Hero “Write.”</b> The word inks in from a single drop on first load, the same drop that later becomes the night puddle.</li>
+      <li><b>Free.</b> The full stop is a drop of ink that falls and spreads into the download button.</li>
+      <li><b>Closing “Write.”</b> A caret blinks after it and types the visitor’s platform: “Write. On your Mac.”</li>
+      <li><b>Open to check.</b> Hovering the line peels the page back to show the real source of that promise.</li>
+    </ul>
+  </section>
+
+  <details class="round1" id="round6">
+    <summary>Round 6 · M, the candidate winner</summary>
+    <div id="dirs6"></div>
+  </details>
+
+  <details class="round1" id="round5">
+    <summary>Round 5 · K and L, already rated</summary>
+    <div id="dirs5"></div>
+  </details>
+
+  <details class="round1" id="round4">
+    <summary>Round 4 · I and J, already rated</summary>
+    <div id="dirs4"></div>
+  </details>
+
+  <details class="round1" id="round3">
+    <summary>Round 3 · G and H, already rated</summary>
+    <div id="dirs3"></div>
+  </details>
+
+  <details class="round1" id="round2">
+    <summary>Round 2 · E and F, already rated</summary>
+    <div id="dirs2"></div>
+  </details>
+
+  <details class="round1" id="round1">
+    <summary>Round 1 · A–D, already rated</summary>
+    <div id="dirs1"></div>
+  </details>
+
+  <section class="general" aria-labelledby="general-title">
+    <h2 class="eyebrow" id="general-title">General notes</h2>
+    <div class="field">
+      <label for="general-notes">What to mix, what to drop, anything the next round should try</label>
+      <textarea id="general-notes" placeholder="e.g. B's spec sheet inside C's page; D's letter as the pledge page"></textarea>
+    </div>
+    <textarea class="copybox" id="copybox" hidden aria-label="Ratings as JSON" readonly></textarea>
+  </section>
+</div>
+
+<dialog id="viewer" aria-labelledby="viewer-title">
+  <div class="viewer__bar">
+    <p id="viewer-title"></p>
+    <div class="seg" role="group" aria-label="Viewer width">
+      <button type="button" data-vw="desk" aria-pressed="true">Desktop</button>
+      <button type="button" data-vw="phone" aria-pressed="false">Phone</button>
+    </div>
+    <button class="btn" type="button" id="viewer-close">Close</button>
+  </div>
+  <div class="viewer__stage"><iframe id="viewer-frame" title="Full-screen preview"></iframe></div>
+</dialog>
+
+<script>
+(function () {
+  var DIRS = [
+    { id: 'n', round: 7, slug: 'n-motion', name: 'N · M in motion',
+      idea: 'M with the promise copy and moving parts. The footage fades straight into the green band. The night words sit in a pool of darkness from the start, and it spreads out around them as you scroll. Rest the cursor on a feature and the page is cut along that row\u2019s rule and pulled open into an eye onto the feature, with the lines around it bending out of the way. The book turns, opens its cover and turns a page as you scroll. A hidden reader\u2019s mark shows under the cursor on the protections. Reduced motion shows each part finished.',
+      line: 'Write. / Then it becomes a book. / The world is yours. So is every word.',
+      perf: null,
+      sections: ['Footage fade into the band', 'Spreading darkness (night)', 'Cut in the page (features)', 'Opening book', 'Marketplace band', 'Reader\u2019s mark (protection)', 'Price', 'Footer'] },
+    { id: 'm', round: 6, slug: 'm-final', name: 'M · Candidate winner',
+      idea: 'L with K\u2019s footer (it follows the page\u2019s colour), the six stops removed, and \u201cReal human readers.\u201d in the marketplace. Everything else as L: night after the hero, Sage, the protections on black.',
+      line: 'Write. / Read each other. / The world is yours. So is every word.',
+      perf: { score: 98, a11y: 100, lcp: '2.3 s', tbt: '0 ms', cls: '0', kb: '215 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Night', 'Roster', 'Then it becomes a book', 'Marketplace band', 'Protection on black', 'Price', 'Footer'] },
+    { id: 'k', round: 5, slug: 'k-protect-paper', name: 'K · Protection on paper',
+      idea: 'I with your notes: night straight after the hero, Sage, no Part labels, no models line, poems and scripts named alongside novels, no frame line on the marketplace image. The protections get a section of their own on paper: no AI writes for you, never trains anything, marked to every reader, hard to copy, leaks get traced. Ends in the page\u2019s theme.',
+      line: 'Read each other. / The world is yours. So is every word.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '216 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Night', 'Six stops', 'Roster', 'Then it becomes a book', 'Marketplace band', 'Protection grid', 'Price', 'Merged footer'] },
+    { id: 'l', round: 5, slug: 'l-protect-dark', name: 'L · Protection on black',
+      idea: 'The same page as K, but the protections are a full-bleed black band with the headline at hero scale, and the closing download and footer sit on black, as in I.',
+      line: 'Read each other. / The world is yours. So is every word.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '217 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Night', 'Six stops', 'Roster', 'Then it becomes a book', 'Marketplace band', 'Protection on black', 'Price', 'Black ending'] },
+    { id: 'i', round: 4, slug: 'i-night-close', name: 'I · Night at the close',
+      idea: 'H, with night as the finale: \u201cFor the book you write after everyone\u2019s asleep.\u201d flows into \u201cWrite.\u201d, the download and the footer, all on black. The marketplace is a short band: \u201cRead each other.\u201d on the left, the loop on the right, a wide review window below.',
+      line: 'Read each other. / Real readers. Not a model.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '215 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Six stops', 'Roster', 'Then it becomes a book', 'Marketplace band', 'The world is yours', 'Price', 'Night finale + footer'] },
+    { id: 'j', round: 4, slug: 'j-night-early', name: 'J · Night up front',
+      idea: 'H, with night straight after the hero as part of showing the app. The marketplace has no picture: \u201cWriters read writers.\u201d, the line and the loop beside a square review window, on dark. The footer merges with the last download.',
+      line: 'Writers read writers. / Real readers. Not a model.',
+      perf: { score: 98, a11y: 100, lcp: '2.3 s', tbt: '0 ms', cls: '0', kb: '214 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Night', 'Six stops', 'Roster', 'Then it becomes a book', 'Marketplace beside window', 'The world is yours', 'Price', 'Merged footer'] },
+    { id: 'g', round: 3, slug: 'g-marketplace', name: 'G · E with the marketplace',
+      idea: 'E, with the marketplace as its own section: \u201cReal readers. Not a model.\u201d, the read-review-earn-be-read loop, the rules (coins can\u2019t be bought, finish what you take on, watermarks, report bots). Roadmap features marked Coming. No FAQ. \u201cNo account needed\u201d.',
+      line: 'Start with a sentence. Finish with a book.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '211 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Six stops', 'Marketplace', 'Roster with Coming', 'Then it becomes a book', 'Night', 'The world is yours', 'Price', 'Final row'] },
+    { id: 'h', round: 3, slug: 'h-two-acts', name: 'H · Two acts',
+      idea: 'E in two parts. Part one, \u201cWrite it\u201d: six stops, roster, the book. Part two, the marketplace, as a second hero: a full-bleed band with \u201cRead each other.\u201d, then the loop and the rules on dark.',
+      line: 'Start with a sentence. Finish with a book. / Read each other.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '212 KB' },
+      sections: ['Hero + app rising', 'Part one', 'Read each other band', 'The loop on dark', 'Night', 'The world is yours', 'Price', 'Final row'] },
+    { id: 'e', round: 2, slug: 'e-refined', name: 'E · A, refined',
+      idea: 'A with your notes: a text-only nav over the footage, one row under "Write.", the app rising into the first screen, B\u2019s six pages under C\u2019s line, a Fern band, half the words, no other apps named, a smaller closing "Write.".',
+      line: 'Start with a sentence. Finish with a book.',
+      perf: { score: 98, a11y: 100, lcp: '2.3 s', tbt: '0 ms', cls: '0', kb: '206 KB' },
+      sections: ['Hero + app rising', 'Fern band', 'Six stops', 'Roster', 'Then it becomes a book', 'Night', 'The world is yours', 'Price', 'FAQ', 'Final row'] },
+    { id: 'f', round: 2, slug: 'f-monolith', name: 'F · Monolith on location',
+      idea: 'The dailies\u2019 favourite as a whole page: dark from the start, a poster hero, full-bleed place bands carrying one huge line each, numbered roster, terse copy.',
+      line: 'Start with a sentence. Finish with a book.',
+      perf: { score: 98, a11y: 100, lcp: '2.3 s', tbt: '0 ms', cls: '0', kb: '206 KB' },
+      sections: ['Poster hero', 'App window', 'Six stops', 'Numbered roster', 'Book band', 'Night', 'Pledge band', 'Price', 'FAQ', 'Final row'] },
+    { id: 'a', round: 1, slug: 'a-on-location', name: 'A · On location',
+      idea: 'The current site plan, built as written: "Write." over the leaves footage, a typographic roster of features tied to places, one section on black.',
+      line: 'Start with a sentence. Finish with a book. / No account, no cloud, no AI writing for you.',
+      perf: { score: 97, a11y: 100, lcp: '2.4 s', tbt: '0 ms', cls: '0', kb: '209 KB' },
+      sections: ['Hero over footage', 'App window peek', 'Journey 01–06', 'Feature roster', 'Print spec + spread', 'Night section', 'Pledge', 'Proof', 'Price', 'FAQ', 'Final "Write."'] },
+    { id: 'b', round: 1, slug: 'b-the-proof', name: 'B · The proof',
+      idea: 'Print first. The hero picture is a 6×9 spread in crop marks; the page follows the book being made, then a printer’s spec sheet, then the world tools.',
+      line: 'From first sentence to print-ready book, in one free app. Offline, and every word your own.',
+      perf: { score: 99, a11y: 100, lcp: '2.2 s', tbt: '0 ms', cls: '0', kb: '193 KB' },
+      sections: ['Hero spread in crop marks', 'Trust row', 'Six pages', 'Seven book styles', 'Spec sheet', 'Before the book', 'Pledge (two columns)', 'Sample book', 'Price', 'FAQ', 'Leaves band'] },
+    { id: 'c', round: 1, slug: 'c-the-atlas', name: 'C · The atlas',
+      idea: 'Worldbuilding first. A drawn graticule and route behind "Write.", a map as the first product shot, the journey as a route, the world tools as a bento.',
+      line: 'Draft it, map it, typeset it. One free app from first line to finished book, and nothing in it writes for you.',
+      perf: { score: 98, a11y: 100, lcp: '2.3 s', tbt: '0 ms', cls: '0', kb: '188 KB' },
+      sections: ['Graticule hero', 'Map window', 'Route 01–06', 'World bento', 'Then it becomes a book', 'Pledge', 'Worlds people built', 'Price', 'FAQ'] },
+    { id: 'd', round: 1, slug: 'd-after-dark', name: 'D · After dark',
+      idea: 'The quiet room. Pitch black by default, one reading column, a blinking caret, a letter in place of a feature grid, one still of the leaves.',
+      line: 'For the book you write after everyone’s asleep.',
+      perf: { score: 99, a11y: 100, lcp: '2.0 s', tbt: '0 ms', cls: '0', kb: '200 KB' },
+      sections: ['Caret hero', 'Pitch-black window', 'The letter', 'The night’s work list', 'Leaves still', 'A book you can hold', 'Pledge', 'Testimonials', 'Price', 'FAQ'] }
+  ];
+  var CRIT = [
+    ['first', 'First impression'], ['clarity', 'Clarity of message'], ['identity', 'Fits our human-craft, no-AI identity'],
+    ['type', 'Typography'], ['colour', 'Colour & theming'], ['usability', 'Usability & navigation'],
+    ['download', 'Would make me download'], ['mobile', 'Mobile experience']
+  ];
+  var state = {};
+  DIRS.forEach(function (d) { state[d.id] = { scores: {}, notes: '', keep: '' }; });
+  var general = '';
+  var GREENS = [['fern', 'Fern (current)', '#244a37', '#7dbb90'], ['fernsage', 'Fern by day, Sage by night', '#244a37', '#a7bc94'], ['sage', 'Sage', '#3f5a3a', '#a7bc94'], ['forest', 'Forest', '#284a26', '#8db574']];
+  var greens = {};
+  GREENS.forEach(function (g) { greens[g[0]] = { rating: null, note: '' }; });
+  var db = null;
+  var statusEl = document.getElementById('status');
+  function status(t, warn) { statusEl.textContent = t; statusEl.classList.toggle('warn', !!warn); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // ── Build the rows
+  var dirsEl = document.getElementById('dirs');
+  DIRS.forEach(function (d) {
+    var el = document.createElement('section');
+    el.className = 'dir'; el.id = 'dir-' + d.id; el.setAttribute('aria-labelledby', 'h-' + d.id);
+    var crit = CRIT.map(function (c) {
+      var stars = '';
+      for (var v = 5; v >= 1; v--) {
+        var id = d.id + '-' + c[0] + '-' + v;
+        stars += '<input type="radio" id="' + id + '" name="' + d.id + '-' + c[0] + '" value="' + v + '" data-dir="' + d.id + '" data-crit="' + c[0] + '"><label for="' + id + '" title="' + v + ' of 5"><span aria-hidden="true">★</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">' + v + ' of 5</span></label>';
+      }
+      return '<fieldset class="crit"><legend>' + esc(c[1]) + '</legend><span class="stars">' + stars + '</span></fieldset>';
+    }).join('');
+    el.innerHTML =
+      '<div class="dir__head"><div><h2 id="h-' + d.id + '">' + esc(d.name) + '</h2><p class="dir__idea">' + esc(d.idea) + '</p><p class="meta dir__line">Sub-line tested: “' + esc(d.line) + '”</p></div><p class="dir__avg" id="avg-' + d.id + '"></p></div>' +
+      '<div><div class="previews">' +
+        '<div><div class="frame frame--desk" data-w="1280"><iframe loading="lazy" title="' + esc(d.name) + ', desktop preview" data-src="' + d.slug + '/index.html"></iframe></div><p class="meta frame__label">Desktop · 1280 px</p></div>' +
+        '<div><div class="frame frame--phone" data-w="390"><iframe loading="lazy" title="' + esc(d.name) + ', phone preview" data-src="' + d.slug + '/index.html"></iframe></div><p class="meta frame__label">Phone · 390 px</p></div>' +
+      '</div>' +
+      '<div class="links"><button class="btn" type="button" data-view="' + d.id + '">View full screen</button></div>' +
+      (d.perf ? '<p class="meta perf">Lighthouse mobile: <span>Perf <b>' + d.perf.score + '</b></span><span>A11y <b>' + d.perf.a11y + '</b></span><span>LCP <b>' + d.perf.lcp + '</b></span><span>TBT <b>' + d.perf.tbt + '</b></span><span>CLS <b>' + d.perf.cls + '</b></span><span><b>' + d.perf.kb + '</b> before video</span><span>axe <b>0</b> issues</span></p></div>' : '<p class="meta perf">Lighthouse and axe: not run yet this round</p></div>') +
+      '<form class="rate" onsubmit="return false" aria-label="Rate ' + esc(d.name) + '">' + crit +
+        '<div class="field"><label for="notes-' + d.id + '">Notes</label><textarea id="notes-' + d.id + '" data-dir="' + d.id + '" data-field="notes" placeholder="What works, what doesn’t"></textarea></div>' +
+        '<div class="field"><label for="keep-' + d.id + '">Favourite section to keep</label><input id="keep-' + d.id + '" data-dir="' + d.id + '" data-field="keep" list="sec-' + d.id + '" placeholder="Pick or type a section"><datalist id="sec-' + d.id + '">' + d.sections.map(function (s) { return '<option value="' + esc(s) + '">'; }).join('') + '</datalist></div>' +
+      '</form>';
+    (d.round === 7 ? dirsEl : document.getElementById('dirs' + d.round)).appendChild(el);
+  });
+
+  // ── Greens
+  var greensEl = document.getElementById('greens');
+  GREENS.forEach(function (g) {
+    var stars = '';
+    for (var v = 5; v >= 1; v--) {
+      var id = 'g-' + g[0] + '-' + v;
+      stars += '<input type="radio" id="' + id + '" name="green-' + g[0] + '" value="' + v + '" data-green="' + g[0] + '"><label for="' + id + '" title="' + v + ' of 5"><span aria-hidden="true">★</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">' + v + ' of 5</span></label>';
+    }
+    var row = document.createElement('fieldset');
+    row.className = 'green-row crit';
+    row.innerHTML = '<legend style="float:left;padding:0"><h3>' + esc(g[1]) + '</h3></legend><span class="pair" aria-hidden="true"><i style="background:' + g[2] + '"></i><i style="background:' + g[3] + '"></i></span><span class="stars">' + stars + '</span><input type="text" aria-label="Note on ' + esc(g[1]) + '" data-green-note="' + g[0] + '" placeholder="Note (optional)">';
+    greensEl.appendChild(row);
+  });
+  function fillGreen(k) {
+    document.querySelectorAll('input[name="green-' + k + '"]').forEach(function (r) { r.checked = +r.value === greens[k].rating; });
+    var n = document.querySelector('[data-green-note="' + k + '"]'); if (n && document.activeElement !== n) n.value = greens[k].note || '';
+  }
+  function saveGreen(k) { persist('green-' + k, 'greens/' + k, { green: k, rating: greens[k].rating, note: greens[k].note, updatedAt: Date.now() }); }
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[type="radio"][data-green]')) { greens[t.dataset.green].rating = +t.value; saveGreen(t.dataset.green); }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.greenNote) { greens[t.dataset.greenNote].note = t.value; status('Saving…'); later('green-' + t.dataset.greenNote, function () { saveGreen(t.dataset.greenNote); }); }
+  });
+
+  // ── Preview frames: scale the fixed-width iframes to fit, theme them by hash
+  var previewTheme = 'auto', previewGreen = 'default';
+  function hashFor() {
+    var parts = [];
+    if (previewTheme !== 'auto') parts.push(previewTheme);
+    if (previewGreen !== 'default') parts.push(previewGreen);
+    return parts.length ? '#' + parts.join('.') : '';
+  }
+  function reloadFrames() { document.querySelectorAll('.frame iframe').forEach(function (f) { f.src = f.getAttribute('data-src') + hashFor(); }); }
+  function fit(frame) {
+    var w = +frame.getAttribute('data-w'); var f = frame.querySelector('iframe');
+    var s = frame.clientWidth / w;
+    f.style.transform = 'scale(' + s + ')';
+    f.style.height = (frame.clientHeight / s) + 'px';
+  }
+  var ro = 'ResizeObserver' in window ? new ResizeObserver(function (es) { es.forEach(function (e) { fit(e.target); }); }) : null;
+  document.querySelectorAll('.frame').forEach(function (fr) {
+    var f = fr.querySelector('iframe');
+    f.src = f.getAttribute('data-src') + hashFor();
+    if (ro) ro.observe(fr); else fit(fr);
+  });
+  document.querySelectorAll('[data-green-preview]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      previewGreen = b.getAttribute('data-green-preview');
+      document.querySelectorAll('[data-green-preview]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      reloadFrames();
+    });
+  });
+  document.querySelectorAll('[data-theme-preview]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      previewTheme = b.getAttribute('data-theme-preview');
+      document.querySelectorAll('[data-theme-preview]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      reloadFrames();
+    });
+  });
+
+  // ── Full-screen viewer (links to the pages can't open a new tab from this frame)
+  var viewer = document.getElementById('viewer'), vframe = document.getElementById('viewer-frame'), vstage = viewer.querySelector('.viewer__stage');
+  var current = null;
+  function setWidth(w) {
+    vstage.classList.toggle('is-phone', w === 'phone');
+    viewer.querySelectorAll('[data-vw]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-vw') === w)); });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]'); if (!b) return;
+    current = DIRS.filter(function (d) { return d.id === b.getAttribute('data-view'); })[0];
+    document.getElementById('viewer-title').textContent = current.name;
+    vframe.src = current.slug + '/index.html' + hashFor();
+    setWidth('desk');
+    if (viewer.showModal) viewer.showModal(); else viewer.setAttribute('open', '');
+  });
+  viewer.querySelectorAll('[data-vw]').forEach(function (b) { b.addEventListener('click', function () { setWidth(b.getAttribute('data-vw')); }); });
+  document.getElementById('viewer-close').addEventListener('click', function () { viewer.close ? viewer.close() : viewer.removeAttribute('open'); });
+  viewer.addEventListener('close', function () { vframe.src = 'about:blank'; });
+
+  // ── Scores
+  function avg(scores) {
+    var vals = CRIT.map(function (c) { return scores[c[0]]; }).filter(function (v) { return typeof v === 'number'; });
+    return vals.length ? vals.reduce(function (a, b) { return a + b; }, 0) / vals.length : null;
+  }
+  function renderTable() {
+    var avgs = DIRS.map(function (d) { return avg(state[d.id].scores); });
+    var best = Math.max.apply(null, avgs.map(function (a) { return a == null ? -1 : a; }));
+    var html = '<thead><tr><th scope="col">Direction</th>' + CRIT.map(function (c) { return '<th scope="col">' + esc(c[1]) + '</th>'; }).join('') + '<th scope="col">Average</th></tr></thead><tbody>';
+    DIRS.forEach(function (d, i) {
+      var s = state[d.id].scores; var a = avgs[i];
+      html += '<tr class="' + (a != null && a === best ? 'lead' : '') + '"><td><a href="#dir-' + d.id + '" style="color:inherit">' + esc(d.name) + '</a></td>' +
+        CRIT.map(function (c) { var v = s[c[0]]; return v ? '<td>' + v + '<span class="bar"><i style="width:' + (v * 20) + '%"></i></span></td>' : '<td class="empty">—</td>'; }).join('') +
+        '<td class="avg">' + (a == null ? '<span class="empty">—</span>' : a.toFixed(1)) + '</td></tr>';
+      var av = document.getElementById('avg-' + d.id);
+      av.textContent = a == null ? 'Not rated yet' : 'Average ' + a.toFixed(1) + ' / 5';
+    });
+    document.getElementById('scores').innerHTML = html + '</tbody>';
+  }
+
+  // ── Fill inputs from state (skipping the field being typed in)
+  function fillInputs(id) {
+    var s = state[id];
+    CRIT.forEach(function (c) {
+      var v = s.scores[c[0]];
+      document.querySelectorAll('input[name="' + id + '-' + c[0] + '"]').forEach(function (r) { r.checked = +r.value === v; });
+    });
+    ['notes', 'keep'].forEach(function (f) {
+      var el = document.querySelector('[data-dir="' + id + '"][data-field="' + f + '"]');
+      if (el && document.activeElement !== el) el.value = s[f] || '';
+    });
+  }
+
+  // ── Saving: the page's database when available, else this browser
+  var chains = {};
+  function persist(key, path, body) {
+    if (db) {
+      chains[key] = (chains[key] || Promise.resolve()).then(function () {
+        return db.doc(path).set(body).then(function () { status('Saved'); }, function (e) { status('Couldn’t save: ' + ((e && e.message) || 'unknown error'), true); });
+      });
+    } else {
+      try { localStorage.setItem('ib-gallery-' + key, JSON.stringify(body)); status('Saved in this browser only'); } catch (e) { status('Couldn’t save in this view', true); }
+    }
+  }
+  function saveDir(id) {
+    var s = state[id];
+    persist(id, 'ratings/' + id, { dir: id, scores: s.scores, notes: s.notes, keep: s.keep, average: avg(s.scores), updatedAt: Date.now() });
+  }
+  var timers = {};
+  function later(key, fn) { clearTimeout(timers[key]); timers[key] = setTimeout(fn, 700); }
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[type="radio"][data-crit]')) {
+      state[t.dataset.dir].scores[t.dataset.crit] = +t.value;
+      renderTable(); saveDir(t.dataset.dir);
+    }
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.field) {
+      state[t.dataset.dir][t.dataset.field] = t.value;
+      status('Saving…'); later(t.dataset.dir, function () { saveDir(t.dataset.dir); });
+    } else if (t.id === 'general-notes') {
+      general = t.value; status('Saving…');
+      later('general', function () { persist('general', 'notes/general', { text: general, updatedAt: Date.now() }); });
+    }
+  });
+
+  // ── Copy
+  document.getElementById('copy-json').addEventListener('click', function () {
+    var json = JSON.stringify({ round: 7, ratings: state, greens: greens, general: general }, null, 2);
+    var box = document.getElementById('copybox');
+    function showBox() { box.hidden = false; box.value = json; box.focus(); box.select(); status('Select-all and copy from the box below'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(json).then(function () { status('Copied'); }, showBox);
+    else showBox();
+  });
+
+  // ── Load
+  function loadLocal() {
+    DIRS.forEach(function (d) {
+      try { var v = JSON.parse(localStorage.getItem('ib-gallery-' + d.id) || 'null'); if (v) state[d.id] = { scores: v.scores || {}, notes: v.notes || '', keep: v.keep || '' }; } catch (e) {}
+      fillInputs(d.id);
+    });
+    GREENS.forEach(function (gr) { try { var gv = JSON.parse(localStorage.getItem('ib-gallery-green-' + gr[0]) || 'null'); if (gv) greens[gr[0]] = { rating: gv.rating || null, note: gv.note || '' }; } catch (e) {} fillGreen(gr[0]); });
+    try { var g = JSON.parse(localStorage.getItem('ib-gallery-general') || 'null'); if (g) { general = g.text || ''; document.getElementById('general-notes').value = general; } } catch (e) {}
+    renderTable();
+  }
+  renderTable();
+  var use = window.claude && window.claude.use ? window.claude.use('db') : Promise.resolve(null);
+  Promise.resolve(use).then(function (handle) {
+    db = handle;
+    if (!db) { status('Ratings save in this browser only'); loadLocal(); return; }
+    status('Connected · ratings save as you go');
+    db.collection('greens').onSnapshot(function (snap) {
+      snap.docs.forEach(function (doc) { var v = doc.data(); if (v && greens[doc.id]) { greens[doc.id] = { rating: v.rating || null, note: v.note || '' }; fillGreen(doc.id); } });
+    }, function () {});
+    db.collection('ratings').onSnapshot(function (snap) {
+      snap.docs.forEach(function (doc) {
+        var v = doc.data(); if (!v || !state[doc.id]) return;
+        state[doc.id] = { scores: Object.assign({}, v.scores || {}), notes: v.notes || '', keep: v.keep || '' };
+        fillInputs(doc.id);
+      });
+      renderTable();
+    }, function (e) { status('Couldn’t load ratings: ' + ((e && e.message) || 'unknown error'), true); });
+    db.doc('notes/general').get().then(function (snap) {
+      if (snap.exists) { general = (snap.data() || {}).text || ''; var el = document.getElementById('general-notes'); if (document.activeElement !== el) el.value = general; }
+    }, function () {});
+  }, function () { status('Ratings save in this browser only'); loadLocal(); });
+})();
+</script>
