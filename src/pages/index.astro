@@ -4,6 +4,7 @@ import Hero from '../components/Hero.astro'
 import Band from '../components/Band.astro'
 import SplitSection from '../components/SplitSection.astro'
 import NotesSection from '../components/NotesSection.astro'
+import InksSection from '../components/InksSection.astro'
 import NightSection from '../components/NightSection.astro'
 import IndexList from '../components/IndexList.astro'
 import BookSection from '../components/BookSection.astro'
@@ -23,7 +24,7 @@ const preloadImage = posters.length
   : undefined
 const pledgeLink = isLive(HOME.pledge.link.href) ? HOME.pledge.link : undefined
 ---
-<!-- The arc: what it is → no fears → the whole book in one window → notes on the words →
+<!-- The arc: what it is → no fears → the whole book in one window → notes on the words → color →
      how it feels at night → everything else → it becomes a book (download again) →
      getting read → why it's safe → who says so → free, and the download. -->
 <Base header="over" preloadImage={preloadImage}>
@@ -32,6 +33,7 @@ const pledgeLink = isLive(HOME.pledge.link.href) ? HOME.pledge.link : undefined
     <Band {...HOME.band} />
   </Hero>
   <NotesSection {...HOME.notes} />
+  <InksSection {...HOME.inks} />
   <NightSection {...HOME.night} />
   <IndexList eyebrow={HOME.roster.eyebrow} features={FEATURES} />
   <BookSection {...HOME.book} />

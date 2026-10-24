@@ -30,14 +30,34 @@ export interface Loop {
   mp4: string
   webm: string
   poster: string
+  /** When each step happens, in seconds from the loop's start (the app's h.mark). */
+  marks?: Record<string, number>
+  /** The frame that stands for the loop where nothing moves: AVIF and WebP. */
+  rest?: { avif: string; webp: string }
 }
 
-export type Capture = Still | Loop
+/**
+ * A short recording's frames, for a page to play by scrolling. `focus` is the part of
+ * the window (`window`, CSS px) the frames keep; frame n is `frame(n)`, from 1.
+ */
+export interface Sequence {
+  kind: 'sequence'
+  width: number
+  height: number
+  window: { width: number; height: number }
+  focus: { x: number; y: number; width: number; height: number }
+  fps: number
+  frames: number
+  frame: (n: number) => string
+}
 
-/** A shot in the app's themes: `light` is Paper, `dark` is Ink. */
+export type Capture = Still | Loop | Sequence
+
+/** A shot in the app's themes: `light` is Paper, `dark` is Ink, `midnight` is pure black. */
 export interface Shot {
   light?: Capture
   dark?: Capture
+  midnight?: Capture
 }
 
 export interface ChangelogEntry { title: string | null; text: string }
@@ -56,13 +76,20 @@ interface ManifestMedia {
   mp4?: string
   webm?: string
   poster?: string
+  marks?: Record<string, number>
+  rest?: { avif: string; webp: string }
+  window?: { width: number; height: number }
+  focus?: { x: number; y: number; width: number; height: number }
+  fps?: number
+  frames?: number
+  pattern?: string
 }
 interface Manifest {
   schema: 1
   source: string
   app: { version: string; tag: string; date: string | null; commit: string | null; capturedAt: string }
   changelog: Release[]
-  shots: Record<string, { kind: 'still' | 'loop'; aspect: string; themes: Record<string, ManifestMedia> }>
+  shots: Record<string, { kind: Capture['kind']; aspect: string; themes: Record<string, ManifestMedia> }>
 }
 
 // A glob, not an import, so a missing file means "no release yet" rather than a failed build.
@@ -77,9 +104,20 @@ export const CHANGELOG: Release[] = manifest?.changelog ?? []
 
 const url = (p: string) => `/media/app/${p.replace(/^media\//, '')}`
 
-function capture(kind: 'still' | 'loop', m: ManifestMedia): Capture {
+function capture(kind: Capture['kind'], m: ManifestMedia): Capture {
   if (kind === 'loop') {
-    return { kind, width: m.width, height: m.height, seconds: m.seconds!, mp4: url(m.mp4!), webm: url(m.webm!), poster: url(m.poster!) }
+    return {
+      kind, width: m.width, height: m.height, seconds: m.seconds!, mp4: url(m.mp4!), webm: url(m.webm!), poster: url(m.poster!),
+      ...(m.marks ? { marks: m.marks } : {}),
+      ...(m.rest ? { rest: { avif: url(m.rest.avif), webp: url(m.rest.webp) } } : {}),
+    }
+  }
+  if (kind === 'sequence') {
+    const pattern = url(m.pattern!)
+    return {
+      kind, width: m.width, height: m.height, window: m.window!, focus: m.focus!, fps: m.fps!, frames: m.frames!,
+      frame: (n) => pattern.replace('%04d', String(n).padStart(4, '0')),
+    }
   }
   const images = m.images ?? []
   return {
@@ -99,11 +137,16 @@ const used = new Set<string>()
  *
  * When there is one, an id it doesn't have is an error, not a placeholder: the site
  * asked for something the app no longer shows (renamed or removed in showcase/shots.mjs),
- * and the build stops until one of them is changed to match.
+ * and the build stops until one of them is changed to match. The one exception is a shot
+ * `upcoming` in the app's next release: until a release carries it, it's a placeholder.
  */
-export function shot(id: string): Shot | null {
+export function shot(id: string, { upcoming = false } = {}): Shot | null {
   if (!manifest) return null
   const s = manifest.shots[id]
+  if (!s && upcoming) {
+    console.warn(`[app] app ${manifest.app.tag} doesn't capture "${id}" yet (upcoming); showing its placeholder`)
+    return null
+  }
   if (!s) {
     throw new Error(
       `The site shows app shot "${id}", but app ${manifest.app.tag} has no such shot. ` +
@@ -112,10 +155,7 @@ export function shot(id: string): Shot | null {
     )
   }
   used.add(id)
-  return {
-    light: s.themes.light && capture(s.kind, s.themes.light),
-    dark: s.themes.dark && capture(s.kind, s.themes.dark),
-  }
+  return Object.fromEntries(Object.entries(s.themes).map(([theme, m]) => [theme, capture(s.kind, m)])) as Shot
 }
 
 /** Warn about shots the app captures that no page uses (call once every registry is built). */

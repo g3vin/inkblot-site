@@ -9,6 +9,7 @@
  * pledge owns the proof. "Your files" is said by the hero's lede and explained by the pledge,
  * nowhere else. A feature with a section of its own (or a roster row) isn't repeated in
  * another section's facts. A section's line says what it's for; its steps explain how.
+ * The split's column is one paragraph, one live caption and one spec line.
  */
 export const HOME = {
   hero: {
@@ -24,17 +25,9 @@ export const HOME = {
 
   split: {
     title: 'The whole story, in one window.',
-    problem: "A novel is never one document. It's a manuscript, a wall of index cards and a map of somewhere that doesn't exist, spread over four apps.",
-    panes: {
-      prose: '[Prose — Chapter 3, The Lamp Room]',
-      canvas: '[Canvas — the cast as cards, with strings between them]',
-      map: '[Map — the coast road, day 3 of the journey]',
-    },
+    problem: "A novel is never one document. It's a manuscript, index cards and a map, spread over four apps.",
     captions: ['One chapter', 'Prose beside its canvas', 'Canvas beside its map', 'Any two, side by side'],
-    facts: [
-      'Canvases are JSON Canvas, so Obsidian opens them too',
-      'Maps of invented worlds, other planets or the real Earth',
-    ],
+    facts: ['JSON Canvas, opens in Obsidian · Maps of any world, or Earth'],
   },
 
   notes: {
@@ -42,6 +35,13 @@ export const HOME = {
     body: "Leave a photo, a voice memo or a question on the exact phrase it's about, not at the bottom of a file.",
     // The app's own capture (screens.ts): a passage with a note pinned to "light it at dusk".
     screen: 'notes',
+  },
+
+  // The app's window colours and the ink wheel, all the app's own captures (InksSection).
+  inks: {
+    title: 'Color it in.',
+    body: 'Notes, canvas cards and their strings, map pins, table cells and the window itself, in eight inks made for the light and the dark.',
+    wheel: 'Press a color and the ink wheel blooms out of it. Swipe toward the one you want. Every ink opens in the same place, so your hand learns where each one is.',
   },
 
   night: {
@@ -53,30 +53,90 @@ export const HOME = {
     eyebrow: 'Everything else a long story needs',
   },
 
+  // The forms a manuscript turns into, in scroll order. The headline keeps "Then it
+  // becomes" and swaps `name`; each form's model on the right turns in and opens.
   book: {
-    title: 'Then it becomes a book.',
-    steps: ['Pick a trim size.', 'Inkblot sets the cover and spine.', 'And every page inside, ready for the printer.'],
-    facts: ['6 × 9 · 5.5 × 8.5 · 5 × 8 · or your own', 'Cover with spine and ⅛ in bleed', 'PDF · EPUB · Word · Markdown · HTML'],
-    note: 'Sample pages · the real spread will be exported from Inkblot',
-    // The sample book in the 3D model. Placeholder text in brackets until a real
-    // public-domain title is typeset in Inkblot (design-iterations/final/ASSETS.md).
+    lead: 'Then it becomes',
+    forms: [
+      {
+        id: 'book',
+        name: 'a book.',
+        line: 'Pick a trim size. Inkblot sets the cover, the spine and every page inside, ready for the printer.',
+        facts: ['6 × 9 · 5.5 × 8.5 · 5 × 8 · or your own', 'Cover with spine and ⅛ in bleed', 'Print-ready PDF'],
+      },
+      {
+        id: 'poetry',
+        name: 'a poetry collection.',
+        line: 'Your line breaks stay where you put them, with the white space a poem needs around it.',
+        facts: ['A verse style, set flush left', 'Dedication, epigraph and contents', 'Print-ready PDF · EPUB'],
+      },
+      {
+        id: 'script',
+        name: 'a screenplay.',
+        line: 'Industry format as you type, paginated the way a production reads it.',
+        facts: ['Courier 12 · US Letter or A4', '(MORE) and (CONT’D) across pages', 'PDF · Final Draft · Fountain'],
+      },
+      {
+        id: 'ebook',
+        name: 'an ebook.',
+        line: 'The same chapters reflow for every screen, with the cover and contents inside.',
+        facts: ['EPUB, for any e-reader or store', 'Your fonts, chapter openings and styles', 'Cover and contents included'],
+      },
+      {
+        id: 'all',
+        name: 'whatever you wrote.',
+        line: 'One manuscript, every shape it has to take.',
+        facts: ['PDF · EPUB · Word · Markdown · HTML', 'Final Draft · Fountain', 'Plain text, for everything else'],
+      },
+    ],
+    note: 'Sample pages · the real ones will be exported from Inkblot',
+    // The sample book in the 3D model: Little Women (Louisa May Alcott, 1868; Project
+    // Gutenberg #514), open at the end of chapter one and the start of chapter two. The
+    // right-hand page ends mid-paragraph, as a typeset page does.
     sample: {
-      title: 'The Lighthouse Keeper',
-      author: '[Author]',
-      imprint: '[Imprint]',
+      title: 'Little Women',
+      author: 'Louisa May Alcott',
       coverTag: '[COVER — art by a credited artist]',
-      chapterLabel: 'Chapter three',
-      chapterTitle: 'The Lamp Room',
+      chapterLabel: 'Chapter two',
+      chapterTitle: 'A Merry Christmas',
       verso: [
-        'down to the harbour, where the boats knocked together like loose teeth. Nobody looked up. Nobody ever looked up at a lighthouse until it went out.',
-        '“You’ll learn the weather,” her father had said, the spring she turned twelve. “The weather won’t learn you.” She had thought it was a joke. Most of what he said turned out not to be.',
-        'By autumn she knew the gulls by their quarrels and the tide by its smell, and she could tell from the colour of the morning whether the mail boat would come.',
+        'and it had become a household custom, for the mother was a born singer. The first sound in the morning was her voice as she went about the house singing like a lark, and the last sound at night was the same cheery sound, for the girls never grew too old for that familiar lullaby.',
       ],
       recto: [
-        'The stairs turned seven times before the lamp room, and Ada counted every one, because counting kept the dark at the window where it belonged. Above her the lens waited, cold and patient, a cathedral of glass no wider than a kitchen table.',
-        'She had promised her father she would light it at dusk. It was well past dusk. The sea had gone the colour of slate, then of nothing at all.',
+        'Jo was the first to wake in the gray dawn of Christmas morning. No stockings hung at the fireplace, and for a moment she felt as much disappointed as she did long ago, when her little sock fell down because it was crammed so full of goodies. Then she remembered her mother’s promise and, slipping her hand under her pillow, drew out a little crimson-covered book. She knew it very well, for it was',
       ],
     },
+    // A saddle-stitched chapbook, open on two poems: the first two of The Single Hound
+    // (Emily Dickinson, 1914, edited by Martha Dickinson Bianchi), as printed there. Each
+    // poem is stanzas of lines.
+    poems: {
+      title: 'The Single Hound',
+      author: 'Emily Dickinson',
+      left: { title: 'I', folio: 2, stanzas: [['Adventure most unto itself', 'The Soul condemned to be;', 'Attended by a Single Hound –', 'Its own Identity.']] },
+      right: { title: 'II', folio: 3, stanzas: [['The Soul that hath a Guest,', 'Doth seldom go abroad,', 'Diviner Crowd at home', 'Obliterate the need,', 'And courtesy forbid', 'A Host’s departure, when', 'Upon Himself be visiting', 'The Emperor of Men!']] },
+    },
+    // A bradded script: the title page, then page one. The Importance of Being Earnest
+    // (Oscar Wilde, 1895; Project Gutenberg #844), the opening of Act I.
+    script: {
+      title: 'THE IMPORTANCE OF BEING EARNEST',
+      author: 'Oscar Wilde',
+      contact: ['A Trivial Comedy for Serious People'],
+      page: [
+        ['scene', 'FIRST ACT'],
+        ['action', 'Morning-room in Algernon’s flat in Half-Moon Street. The room is luxuriously and artistically furnished. The sound of a piano is heard in the adjoining room.'],
+        ['action', 'Lane is arranging afternoon tea on the table, and after the music has ceased, Algernon enters.'],
+        ['character', 'ALGERNON'],
+        ['dialogue', 'Did you hear what I was playing, Lane?'],
+        ['character', 'LANE'],
+        ['dialogue', 'I didn’t think it polite to listen, sir.'],
+        ['character', 'ALGERNON'],
+        ['dialogue', 'I’m sorry for that, for your sake. I don’t play accurately—any one can play accurately—but I play with wonderful expression. As far as the piano is concerned, sentiment is my forte. I keep science for Life.'],
+        ['character', 'LANE'],
+        ['dialogue', 'Yes, sir.'],
+      ],
+    },
+    // The e-reader: its sleep screen shows the cover, then it wakes on chapter three.
+    ebook: { progress: '34%', left: '6 min left in chapter' },
   },
 
   // The download offered again at the peak: straight after the book.

@@ -1,0 +1,225 @@
+---
+/**
+ * InksSection — "Color it in." A scroll scene, all of it the app's own captures
+ * (screens.ts: inks-<ink>, inks-wheel).
+ *
+ * The stage pins while you scroll through it. Windows in each of the app's window
+ * colours drift up past each other, each on a different document, the nearer (bigger)
+ * ones faster. Sage, the default, rises last and settles in the middle; the scroll then
+ * moves in on its first note, and plays the app's recording of the ink wheel: the note's
+ * colour pressed, the inks blooming round it, a swipe to Teal, the note and its phrase
+ * turning teal. Scrolling back plays it backwards.
+ *
+ * The wheel is a run of frames (a sequence), drawn on a canvas laid exactly over the part
+ * of the Sage window it was cut from, so the zoom carries both. Frames load when the
+ * section comes near, for the theme showing. With no script or under reduced motion, the
+ * windows sit still in a grid. Until an app release carries the captures, placeholders
+ * hold the space.
+ */
+import Shot from './Shot.astro'
+import Slot from './Slot.astro'
+import { SCREENS, WINDOW_INKS } from '../data/screens'
+import type { Sequence } from '../data/app'
+
+interface Props {
+  title: string
+  body: string
+  wheel: string
+}
+const { title, body, wheel } = Astro.props
+
+// Where each drifting window travels: its left edge (a share of the field's width), its
+// width (the same), and when it sets off (a share of the scroll; below 0, it's already
+// on its way when the stage pins).
+const DRIFT: Record<string, [number, number, number]> = {
+  blue: [-0.16, 0.64, -0.2], teal: [0.44, 0.56, -0.13], green: [-0.06, 0.72, -0.06], amber: [0.4, 0.6, 0.01],
+  rust: [-0.14, 0.6, 0.08], red: [0.32, 0.68, 0.15], violet: [-0.02, 0.62, 0.22], slate: [0.44, 0.56, 0.28],
+}
+const windows = WINDOW_INKS.map(([ink, name]) => ({ ink, name, id: `inks-${ink}`, drift: DRIFT[ink] }))
+const captured = windows.every((w) => SCREENS[w.id].shot) && Boolean(SCREENS['inks-wheel'].shot)
+
+// The wheel's frames, per theme, and where in the window they were cut from.
+const seq = (c: unknown) => (c && (c as Sequence).kind === 'sequence' ? (c as Sequence) : null)
+const wheelLight = seq(SCREENS['inks-wheel'].shot?.light)
+const wheelDark = seq(SCREENS['inks-wheel'].shot?.dark) ?? wheelLight
+const frames = (s: Sequence | null) => (s ? Array.from({ length: s.frames }, (_, i) => s.frame(i + 1)) : [])
+const focus = wheelLight?.focus
+const win = wheelLight?.window
+const pct = (a: number, b: number) => `${((a / b) * 100).toFixed(3)}%`
+---
+<section class:list={['section', 'inks', { 'is-captured': captured }]} id="inks" aria-labelledby="inks-title">
+  <div class="inks__track">
+    <div class="wrap inks__stage">
+      <div class="inks__head">
+        <h2 class="display inks__title" id="inks-title">{title}</h2>
+        <p class="inks__body">{body}</p>
+        <p class="inks__body">{wheel}</p>
+      </div>
+      <div class="inks__field">
+        {captured ? (
+          <Fragment>
+            {windows.map((w) => (
+              <figure class:list={['window', 'inks__win', `inks__win--${w.ink}`]} data-ink={w.ink}
+                data-drift={w.drift ? w.drift.join(' ') : undefined}>
+                {w.ink === 'sage' ? (
+                  <div class="inks__lens">
+                    <div class="inks__zoom">
+                      <Shot screen={w.id} sizes="(min-width: 860px) 50vw, 100vw" />
+                      {focus && win && (
+                        <canvas class="inks__frames" aria-hidden="true" width={focus.width} height={focus.height}
+                          style={`left: ${pct(focus.x, win.width)}; top: ${pct(focus.y, win.height)}; width: ${pct(focus.width, win.width)}; height: ${pct(focus.height, win.height)}`}
+                          data-light={JSON.stringify(frames(wheelLight))} data-dark={JSON.stringify(frames(wheelDark))}
+                          data-scale={Math.min(win.width / focus.width, win.height / focus.height).toFixed(4)}
+                          data-x={(focus.x / win.width).toFixed(4)} data-y={(focus.y / win.height).toFixed(4)}></canvas>
+                      )}
+                    </div>
+                  </div>
+                ) : <Shot screen={w.id} sizes="(min-width: 860px) 26vw, 50vw" decorative />}
+              </figure>
+            ))}
+            <p class="visually-hidden">{SCREENS['inks-wheel'].alt}</p>
+          </Fragment>
+        ) : (
+          <figure class="window inks__placeholder"><Slot aspect="16 / 10" label={SCREENS['inks-wheel'].placeholder} /></figure>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .inks { background: var(--bg); padding-block: 0; }
+  .inks__stage {
+    display: grid; gap: 2rem clamp(2rem, 5vw, 5rem); align-items: center;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    padding-block: var(--section);
+  }
+  .inks__head { grid-column: 2; grid-row: 1; display: grid; gap: 1.25rem; position: relative; z-index: 2; }
+  .inks__title { font-size: var(--step-3); max-width: 10ch; }
+  .inks__body { max-width: 38ch; color: var(--text-2); text-wrap: pretty; }
+  .inks__field { grid-column: 1; grid-row: 1; position: relative; }
+
+  /* At rest (no script, reduced motion): the windows in a grid, Sage last. */
+  .inks__field { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+  .inks__win { margin: 0; }
+  .inks__placeholder { grid-column: 1 / -1; }
+  .inks__lens { position: relative; overflow: hidden; aspect-ratio: 16 / 10; }
+  .inks__zoom { position: absolute; inset: 0; transform-origin: 0 0; }
+  .inks__frames { position: absolute; display: block; opacity: 0; }
+
+  /* The scene: the stage pins for the length of the track while the windows move. */
+  :global(.js) .inks.is-captured:not(.is-static) .inks__track { height: 460svh; }
+  :global(.js) .inks.is-captured:not(.is-static) .inks__stage {
+    position: sticky; top: 0; height: 100svh; padding-block: 0; overflow: clip;
+  }
+  :global(.js) .inks.is-captured:not(.is-static) .inks__field { display: block; height: 100svh; }
+  :global(.js) .inks.is-captured:not(.is-static) .inks__win {
+    position: absolute; left: 0; top: 0; width: 100%;
+    transform-origin: 0 0; will-change: transform; visibility: hidden;
+  }
+  :global(.js) .inks.is-captured:not(.is-static) .inks__win--sage { z-index: 1; }
+
+  @media (max-width: 860px) {
+    .inks__stage { grid-template-columns: 1fr; align-content: start; }
+    .inks__head { grid-column: 1; grid-row: 1; }
+    .inks__field { grid-column: 1; grid-row: 2; }
+    :global(.js) .inks.is-captured:not(.is-static) .inks__stage { grid-template-rows: auto minmax(0, 1fr); padding-top: 4.5rem; }
+    /* Under the words, so the windows clip at the field's top rather than pass over them. */
+    :global(.js) .inks.is-captured:not(.is-static) .inks__field { height: auto; align-self: stretch; overflow: clip; }
+  }
+</style>
+
+<script>
+  import { add, clamp, ease, kick, lerp, seg, reduceMotion } from '../scripts/frame'
+
+  // The scroll, in shares of the track: windows drift, Sage settles, then the zoom, then the wheel.
+  const DRIFT_FOR = 0.4
+  const SAGE = [0.18, 0.56] as const
+  const ZOOM = [0.6, 0.72] as const
+  const WHEEL = [0.74, 0.96] as const
+  const RATIO = 10 / 16
+
+  const darkTheme = () => {
+    const t = document.documentElement.dataset.theme
+    return t ? t !== 'light' : window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+
+  document.querySelectorAll<HTMLElement>('.inks.is-captured').forEach((section) => {
+    if (reduceMotion) { section.classList.add('is-static'); return }
+    const track = section.querySelector<HTMLElement>('.inks__track')!
+    const field = section.querySelector<HTMLElement>('.inks__field')!
+    const wins = [...section.querySelectorAll<HTMLElement>('.inks__win')]
+    const sage = section.querySelector<HTMLElement>('.inks__win--sage')!
+    const zoom = section.querySelector<HTMLElement>('.inks__zoom')!
+    const canvas = section.querySelector<HTMLCanvasElement>('.inks__frames')
+    const ctx = canvas?.getContext('2d')
+    const K = Number(canvas?.dataset.scale ?? 1), FX = Number(canvas?.dataset.x ?? 0), FY = Number(canvas?.dataset.y ?? 0)
+
+    // The wheel's frames, loaded for the theme showing once the section comes near.
+    const loaded: Record<string, HTMLImageElement[]> = {}
+    function framesFor(theme: 'light' | 'dark') {
+      if (!canvas) return []
+      if (!loaded[theme]) {
+        const urls = JSON.parse(canvas.dataset[theme] || '[]') as string[]
+        loaded[theme] = urls.map((src) => { const img = new Image(); img.decoding = 'async'; img.onload = kick; img.src = src; return img })
+      }
+      return loaded[theme]
+    }
+    new IntersectionObserver((es) => { if (es[0].isIntersecting) framesFor(darkTheme() ? 'dark' : 'light') }, { rootMargin: '100% 0px' }).observe(section)
+    let drawn = ''
+    function draw(f: number) {
+      if (!canvas || !ctx) return
+      const theme = darkTheme() ? 'dark' : 'light'
+      const list = framesFor(theme)
+      // The wanted frame, or the nearest one before it that has arrived.
+      let i = Math.round(f * (list.length - 1))
+      while (i > 0 && !(list[i].complete && list[i].naturalWidth)) i--
+      const img = list[i]
+      if (!img?.complete || !img.naturalWidth || drawn === `${theme}${i}`) return
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      drawn = `${theme}${i}`
+    }
+
+    const place = (el: HTMLElement, x: number, y: number, w: number, fieldW: number) => {
+      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(w / fieldW).toFixed(4)})`
+      el.style.visibility = 'visible'
+    }
+
+    add(section, {
+      tick() {
+        const r = track.getBoundingClientRect()
+        const p = clamp(-r.top / (r.height - window.innerHeight), 0, 1)
+        const W = field.clientWidth, H = field.clientHeight
+
+        // The drifting windows: from below the field to above it, bigger ones further, so faster.
+        for (const el of wins) {
+          if (el === sage) continue
+          const [x, size, start] = el.dataset.drift!.split(' ').map(Number)
+          const w = size * W, h = w * RATIO
+          const u = (p - start) / DRIFT_FOR
+          if (u <= 0 || u >= 1) { el.style.visibility = 'hidden'; continue }
+          place(el, x * W, lerp(H + 8, -h - 8, u), w, W)
+        }
+
+        // Sage rises and settles in the middle, as wide as fits.
+        const end = Math.min(W, (H * 0.92) / RATIO)
+        const s = ease(seg(p, ...SAGE))
+        const w = lerp(0.46 * W, end, s)
+        place(sage, lerp(0.27 * W, (W - end) / 2, s), lerp(H + 8, (H - end * RATIO) / 2, s), w, W)
+        sage.style.visibility = p > SAGE[0] ? 'visible' : 'hidden'
+
+        // In on the note: the part the wheel's frames were cut from fills the window.
+        const z = ease(seg(p, ...ZOOM))
+        zoom.style.transform = z > 0 ? `scale(${lerp(1, K, z).toFixed(4)}) translate(${(-FX * 100 * z).toFixed(3)}%, ${(-FY * 100 * z).toFixed(3)}%)` : ''
+
+        // The wheel, played by the scroll.
+        if (canvas) {
+          const f = seg(p, ...WHEEL)
+          canvas.style.opacity = p >= WHEEL[0] - 0.01 ? '1' : '0'
+          draw(f)
+        }
+        return false
+      },
+    })
+  })
+</script>

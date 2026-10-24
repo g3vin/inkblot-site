@@ -4,17 +4,15 @@
  * `night` is the Pitch-black frame; `fade` drops the frame line, for windows rising out
  * of a fade.
  *
- * The screen is the app's own capture (src/data/app.ts): a still, or a loop that plays
- * like the places' footage (src/scripts/footage.ts). With Paper and Ink captures, the
- * one matching the visitor's theme shows; the other never loads. With none yet, a
+ * The screen is the app's own capture (Shot.astro, src/data/app.ts). With none yet, a
  * labelled placeholder holds the space.
  *
  * The frame is only the window's outline. Inkblot has no title bar: its traffic lights
  * sit in the left sidebar beside the project title, where a capture already shows them.
  */
+import Shot from './Shot.astro'
 import Slot from './Slot.astro'
 import { SCREENS } from '../data/screens'
-import type { Capture } from '../data/app'
 
 interface Props {
   screen: string
@@ -24,47 +22,12 @@ interface Props {
 const { screen: id, variant = 'default', class: className } = Astro.props
 const screen = SCREENS[id]
 if (!screen) throw new Error(`AppWindow: no screen "${id}" in src/data/screens.ts`)
-
-const sizes = '(min-width: 1100px) 66vw, 100vw'
-const { light, dark } = screen.shot ?? {}
-// Both themes: each shows under its own. One: it shows under both.
-const captures: [Capture, string][] = light && dark
-  ? [[light, 'shot--light'], [dark, 'shot--dark']]
-  : light || dark ? [[(light ?? dark)!, '']] : []
 ---
 <figure class:list={['window', `window--${variant}`, className]}>
-  {captures.length === 0 && <Slot aspect={screen.aspect} label={screen.placeholder} />}
-  {captures.map(([c, theme]) => c.kind === 'loop'
-    ? (
-      <div class:list={['media', 'shot', theme]} style={`aspect-ratio: ${c.width} / ${c.height}`}
-        data-footage={c.mp4} data-footage-webm={c.webm} data-footage-label="the app recording">
-        <img src={c.poster} width={c.width} height={c.height} alt={screen.alt} loading="lazy" decoding="async" />
-        <button class="media__pause" type="button" aria-label="Pause the app recording"></button>
-      </div>
-    )
-    : (
-      <picture class:list={['shot', theme]}>
-        <source type="image/avif" srcset={c.avif} sizes={sizes} />
-        <img src={c.src} srcset={c.webp} sizes={sizes} width={c.width} height={c.height} alt={screen.alt} loading="lazy" decoding="async" />
-      </picture>
-    ))}
+  {screen.shot ? <Shot screen={id} /> : <Slot aspect={screen.aspect} label={screen.placeholder} />}
 </figure>
 
-<script>
-  import '../scripts/footage'
-</script>
-
 <style>
-  img { width: 100%; height: auto; }
-  .shot { display: block; }
-  .shot.media { background: var(--bg-raised); }
-  .shot--dark { display: none; }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme])) .shot--light { display: none; }
-    :global(:root:not([data-theme])) .shot--dark { display: block; }
-  }
-  :global(:root[data-theme='ink']) .shot--light, :global(:root[data-theme='black']) .shot--light { display: none; }
-  :global(:root[data-theme='ink']) .shot--dark, :global(:root[data-theme='black']) .shot--dark { display: block; }
   .window--night {
     --line-strong: var(--night-line); --line: #1a1714; --bg-raised: var(--night-raised);
     --slot-bg: var(--night-slot); --slot-ink: var(--night-muted); --tile-edge: rgba(201, 162, 115, 0.22);

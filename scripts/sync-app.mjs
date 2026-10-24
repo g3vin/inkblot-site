@@ -89,6 +89,9 @@ function listedMedia(manifest) {
     for (const t of Object.values(shot.themes)) {
       if (t.images) for (const i of t.images) out.push(i.avif, i.webp)
       for (const key of ['mp4', 'webm', 'poster']) if (t[key]) out.push(t[key])
+      if (t.rest) out.push(t.rest.avif, t.rest.webp)
+      // A sequence's frames: pattern 'media/<id>-<theme>/%04d.webp', numbered from 1.
+      if (t.pattern) for (let n = 1; n <= t.frames; n++) out.push(t.pattern.replace('%04d', String(n).padStart(4, '0')))
     }
   }
   return out

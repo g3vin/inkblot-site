@@ -2,54 +2,51 @@
 /**
  * SplitSection — "The whole story, in one window." The app window rising over the hero's
  * foot. It starts the full width of the page; as you scroll it shrinks to the right and
- * the writer's problem fades in beside it. Once it settles, it splits on a loop: one
- * chapter, then the chapter beside its canvas, then the canvas beside its map, then the
- * chapter sweeps back. The steps beside it follow along. The panes are labelled
- * placeholders until real captures exist.
+ * the writer's problem fades in beside it.
+ *
+ * In the window, the app's own recording (screens.ts: hero): one chapter; the cast canvas
+ * dragged out of the file tree onto the page splits the window; the map dragged over the
+ * chapter, then a galaxy over the map; back to the chapter, and the split closed. Nothing
+ * is staged here: every move is the app's. One caption beside it names the step that's
+ * playing, timed by the recording's own marks (data-marks, from the app's capture).
  *
  * The window is absolutely placed over a hidden copy of itself at its resting size, so its
- * shrinking never moves the page. Each pane covers the whole window and is cropped to its
- * share with clip-path, and its label is moved to the middle of that share with a
- * transform, so nothing re-lays out while it plays. In a narrow window the split runs top
- * and bottom instead. The loop only runs while the section is on screen.
- *
- * With no script, or under reduced motion, the window rests at its smaller size with the
- * three panes side by side (stacked on phones), and the text shows from the start.
+ * shrinking never moves the page. With no script, under reduced motion or on a phone (no
+ * loop plays there), the window rests at its smaller size on the recording's rest frame
+ * (the canvas beside the map), the caption is the last step, and the text shows from the
+ * start.
  */
+import Shot from './Shot.astro'
 import Slot from './Slot.astro'
+import { SCREENS } from '../data/screens'
 
 interface Props {
   title: string
   problem: string
-  panes: { prose: string; canvas: string; map: string }
   captions: string[]
   facts: string[]
 }
-const { title, problem, panes, captions, facts } = Astro.props
-const order = [['prose', panes.prose], ['canvas', panes.canvas], ['map', panes.map]] as const
+const { title, problem, captions, facts } = Astro.props
+const screen = SCREENS.hero
 ---
 <section class="split" id="window" aria-labelledby="split-title">
   <h2 class="visually-hidden" id="split-title">{title}</h2>
   <div class="wrap split__grid">
     <div class="split__frame">
-      <div class="window split__spacer" aria-hidden="true"><div class="split__panes"></div></div>
+      <div class="window split__spacer" aria-hidden="true"><div class="split__screen"></div></div>
       <figure class="window split__window">
-        <div class="split__panes">
-          {order.map(([id, label]) => (
-            <div class={`pane pane--${id}`} data-pane={id}>
-              <span class="pane__edge" aria-hidden="true"></span>
-              <div class="pane__label"><Slot label={label} class="slot--bare pane__slot" /></div>
-            </div>
-          ))}
+        <div class="split__screen">
+          {screen.shot
+            ? <Shot screen="hero" sizes="(min-width: 900px) 60vw, 100vw" />
+            : <Slot label={screen.placeholder} class="slot--bare split__slot" />}
         </div>
       </figure>
     </div>
     <div class="split__head">
       <p class="split__problem">{problem}</p>
-      <ol class="split__steps meta" aria-hidden="true">
+      <ol class="split__steps" aria-hidden="true">
         {captions.map((c, i) => <li data-step={i} class:list={[{ 'is-on': i === 0 }]}>{c}</li>)}
       </ol>
-      <p class="visually-hidden">{captions[captions.length - 1]}: {order.map(([, l]) => l).join(', ')}.</p>
       <ul class="facts meta split__facts">{facts.map((f) => <li>{f}</li>)}</ul>
     </div>
   </div>
@@ -79,12 +76,12 @@ const order = [['prose', panes.prose], ['canvas', panes.canvas], ['map', panes.m
   }
   .split__problem { font: 400 var(--step-1)/1.45 var(--font-read); max-width: 34ch; text-wrap: pretty; }
   .split__head :global(.meta) { color: inherit; }
-  .split__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; counter-reset: step; }
-  .split__steps li { counter-increment: step; opacity: 0.5; transition: opacity var(--dur-slow) var(--ease-out); }
-  .split__steps li::before { content: '0' counter(step) '  '; white-space: pre; }
+  /* One live caption: the steps share one cell and cross-fade, so the column never moves */
+  .split__steps { list-style: none; margin: 0; padding: 0; display: grid; font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; }
+  .split__steps li { grid-area: 1 / 1; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
   .split__steps li.is-on { opacity: 1; }
-  .split__facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
-  .split__facts li { border-top: 1px solid color-mix(in srgb, var(--on-brand) 30%, transparent); padding-top: 0.4rem; opacity: 0.85; }
+  .split__facts { list-style: none; margin: 0; padding: 0; }
+  .split__facts li { opacity: 0.85; }
 
   @media (max-width: 900px) {
     .split__grid { grid-template-columns: 1fr; }
@@ -92,100 +89,57 @@ const order = [['prose', panes.prose], ['canvas', panes.canvas], ['map', panes.m
     .split__head { grid-column: 1; grid-row: 2; padding-top: 0; }
   }
 
-  /* The window: three panes over each other, each cropped to its share */
-  .split__panes { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--slot-bg); }
-  .pane { position: absolute; inset: 0; clip-path: inset(0 var(--r, 0%) 0 var(--l, 0%)); }
-  .pane--prose { background: var(--bg-raised); }
-  .pane--canvas { background: color-mix(in srgb, var(--brand) 6%, var(--bg-raised)); }
-  .pane--map { background: color-mix(in srgb, var(--brand) 12%, var(--bg-raised)); }
-  .pane__edge { position: absolute; inset: 0; border-left: 1px solid var(--line-strong); transform: var(--edge, none); }
-  .pane__label { position: absolute; inset: 0; display: grid; place-items: center; transform: var(--mid, none); }
-  .pane__label :global(.pane__slot) { aspect-ratio: auto; height: 100%; border: 0; background: none; }
+  /* The window: the recording, or its placeholder, at the app's 16 / 10 */
+  .split__screen { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--slot-bg); }
+  .split__screen :global(.shot) { position: absolute; inset: 0; }
+  .split__screen :global(.shot img), .split__screen :global(.shot video) { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .split__screen :global(.split__slot) { aspect-ratio: auto; height: 100%; border: 0; background: none; }
 
-  /* Resting state (no script, reduced motion): the window in its column, three panes side by side */
+  /* Resting state (no script, reduced motion): the window in its column, on its rest frame */
   .split.is-static .split__spacer, :global(html:not(.js)) .split__spacer { display: none; }
   .split.is-static .split__window, :global(html:not(.js)) .split__window { position: relative; width: auto; }
-  .split.is-static .split__panes, :global(html:not(.js)) .split__panes {
-    aspect-ratio: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line-strong);
-  }
-  .split.is-static .pane, :global(html:not(.js)) .pane { position: relative; clip-path: none; aspect-ratio: 4 / 5; }
-  .split.is-static .pane__edge, :global(html:not(.js)) .pane__edge { display: none; }
-  .split.is-static .split__steps li, :global(html:not(.js)) .split__steps li { opacity: 1; }
-  @container (max-width: 560px) {
-    .split.is-static .split__panes, :global(html:not(.js)) .split__panes { grid-template-columns: 1fr; }
-    .split.is-static .pane, :global(html:not(.js)) .pane { aspect-ratio: 16 / 7; }
-  }
+  .split.is-static .split__steps li, :global(html:not(.js)) .split__steps li { opacity: 0; }
+  .split.is-static .split__steps li:last-child, :global(html:not(.js)) .split__steps li:last-child { opacity: 1; }
 </style>
 
 <script>
-  import { add, ease, seg, lerp, reduceMotion } from '../scripts/frame'
+  import { add, ease, seg, reduceMotion } from '../scripts/frame'
+
+  // The recording's marks, in order, and the caption each one brings up. It ends where it
+  // began, so closing the split brings back the first.
+  const STEPS: [string, number][] = [['one', 0], ['canvas', 1], ['map', 2], ['any', 3], ['closed', 0]]
 
   document.querySelectorAll<HTMLElement>('.split').forEach((section) => {
     if (reduceMotion) { section.classList.add('is-static'); return }
     const frame = section.querySelector<HTMLElement>('.split__frame')!
-    const panes = Object.fromEntries([...section.querySelectorAll<HTMLElement>('[data-pane]')].map((p) => [p.dataset.pane!, p]))
     const caps = [...section.querySelectorAll<HTMLElement>('.split__steps li')]
-    let vertical = false
-    // Measured at the window's resting size, which doesn't change while it shrinks.
-    const measure = () => { vertical = frame.clientWidth < 520 }
-    measure()
+    // The loop's figure, whichever theme's shows (the other is display: none).
+    const figures = [...section.querySelectorAll<HTMLElement>('[data-marks]')]
+    const wide = window.matchMedia('(min-width: 768px)').matches
+    const show = (step: number) => caps.forEach((c, i) => c.classList.toggle('is-on', i === step))
 
-    // A pane's share of the window, from a to b (0–1 along the split's axis).
-    function place(p: HTMLElement, a: number, b: number) {
-      const l = `${(a * 100).toFixed(2)}%`, r = `${((1 - b) * 100).toFixed(2)}%`
-      p.style.clipPath = vertical ? `inset(${l} 0 ${r} 0)` : `inset(0 ${r} 0 ${l})`
-      const mid = ((a + b) / 2 - 0.5) * 100, axis = vertical ? 'Y' : 'X'
-      p.style.setProperty('--mid', `translate${axis}(${mid.toFixed(2)}%) scale(${b - a < 0.6 ? 0.92 : 1})`)
-      p.style.setProperty('--edge', vertical ? `translateY(${(a * 100).toFixed(2)}%)` : `translateX(${(a * 100).toFixed(2)}%)`)
-      p.querySelector<HTMLElement>('.pane__edge')!.style.borderLeftWidth = vertical ? '0' : a > 0.001 ? '1px' : '0'
-      p.querySelector<HTMLElement>('.pane__edge')!.style.borderTop = vertical && a > 0.001 ? '1px solid var(--line-strong)' : '0'
-      p.style.visibility = b - a < 0.002 ? 'hidden' : 'visible'
-      // A label only shows once its pane is wide enough to hold it, so none is ever cut.
-      p.querySelector<HTMLElement>('.pane__label')!.style.opacity = Math.min(1, Math.max(0, (b - a - 0.34) / 0.12)).toFixed(3)
+    // Which caption a moment in the recording belongs to.
+    function stepAt(figure: HTMLElement, t: number) {
+      const marks = JSON.parse(figure.dataset.marks!) as Record<string, number>
+      let step = 0
+      for (const [name, cap] of STEPS) if (marks[name] != null && t >= marks[name]) step = cap
+      return step
     }
 
-    // The loop's keyframes: each pane's share [from, to] of the window, held then eased to the next.
-    type Frame = [number, number][]
-    const K: Frame[] = [
-      [[0, 1], [1, 1], [1, 1]],     // one chapter
-      [[0, 0.5], [0.5, 1], [1, 1]], // the chapter beside its canvas
-      [[0, 0], [0, 0.5], [0.5, 1]], // the canvas beside its map
-    ]
-    const PERIOD = 13000
-    // [start, end] of each move along the loop (0–1); between them the window holds.
-    const moves: [number, number, Frame, Frame][] = [
-      [0.18, 0.28, K[0], K[1]],
-      [0.5, 0.6, K[1], K[2]],
-      [0.88, 1, K[2], K[0]], // the chapter sweeps back in over the other two
-    ]
-    let started = false, clock = 0, last = 0
-    place(panes.prose, ...K[0][0]); place(panes.canvas, ...K[0][1]); place(panes.map, ...K[0][2])
-
+    let settled = false
     add(section, {
-      resize: measure,
-      tick(t) {
+      tick() {
         // Settled once the window's resting top is a fifth of the way down the screen.
         const top = frame.getBoundingClientRect().top + window.scrollY
         const p = seg(window.scrollY, 0, top - window.innerHeight * 0.2)
         section.style.setProperty('--p', ease(p).toFixed(4))
-        if (!started) {
-          if (p < 1) return false
-          started = true
-        }
-        clock += last ? Math.min(t - last, 50) : 0
-        last = t
-        const q = (clock % PERIOD) / PERIOD
-        let f = K[0]
-        for (const [a, b, from, to] of moves) {
-          if (q < a) break
-          const k = ease(seg(q, a, b))
-          f = from.map(([x, y], i) => [lerp(x, to[i][0], k), lerp(y, to[i][1], k)] as [number, number])
-        }
-        place(panes.prose, ...f[0])
-        place(panes.canvas, ...f[1])
-        place(panes.map, ...f[2])
-        const step = q < 0.23 ? 0 : q < 0.55 ? 1 : q < 0.74 ? 2 : q < 0.93 ? 3 : 0
-        caps.forEach((c, i) => c.classList.toggle('is-on', i === step))
+        settled = p >= 1
+        // The caption follows the recording while it plays (footage.ts adds the video once
+        // the page has loaded, and never on phones: there the caption is the last step).
+        const video = figures.map((f) => [f, f.querySelector('video')] as const).find(([f, v]) => v && f.getClientRects().length)
+        if (!video) { show(figures.length && !wide ? caps.length - 1 : 0); return !settled || (wide && figures.length > 0) }
+        const [figure, v] = video
+        show(stepAt(figure, v.currentTime))
         return true
       },
     })
