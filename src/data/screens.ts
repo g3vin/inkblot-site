@@ -66,7 +66,6 @@ const WORDS: Record<string, Words> = {
     alt: 'Inkblot, open on Little Women. The cast canvas is dragged from the file tree onto the page and the window splits: the chapter beside the canvas. The map of Concord is dragged over the chapter, then a galaxy over the map. Back to the chapter, the split is closed.',
     aspect: '16 / 10',
     placeholder: '[APP LOOP — a document dragged onto the page splits the window: chapter, canvas, map, galaxy]',
-    upcoming: true,
   },
 
   // "Color it in.": a window in each of the app's colours, then a note's colour on the ink wheel.
@@ -74,13 +73,11 @@ const WORDS: Record<string, Words> = {
     alt: `Inkblot’s window in ${name}, open on ${doc}.`,
     aspect: '16 / 10',
     placeholder: `[APP SCREENSHOT — the window in ${name}]`,
-    upcoming: true,
   }])),
   'inks-wheel': {
     alt: 'A note’s color pressed: the ink wheel blooms around it, a swipe to Teal, and the note and its phrase turn teal.',
     aspect: '16 / 10',
     placeholder: '[APP FRAMES — a note’s color changed on the ink wheel]',
-    upcoming: true,
   },
 
   // The feature roster: what each one looks like at work, 4 / 3 like its frame.
