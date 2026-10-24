@@ -1,0 +1,16 @@
+---
+/** Band — the brand-green band: one big line. */
+interface Props { line: string }
+const { line } = Astro.props
+---
+<section class="band" aria-label="What you can count on">
+  <div class="wrap band__inner">
+    <p class="band__line">{line}</p>
+  </div>
+</section>
+
+<style>
+  .band { position: relative; z-index: 1; background: var(--brand); color: var(--on-brand); padding-block: clamp(4rem, 8vw, 7rem) clamp(3rem, 6vw, 5rem); }
+  .band__inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem 2rem; }
+  .band__line { font: 700 var(--step-3)/1.02 var(--font-display); letter-spacing: -0.045em; max-width: 16ch; }
+</style>

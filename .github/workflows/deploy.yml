@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+  # A new app release rebuilds the site, so versions and sizes stay current.
+  repository_dispatch:
+    types: [release-published]
+  schedule:
+    - cron: '17 6 * * *'
 
 permissions:
   contents: read
@@ -25,14 +30,20 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      # Fetches the app's version, changelog, screenshots and loops (scripts/sync-app.mjs),
+      # then builds. On a release dispatch, APP_TAG pins the build to that release.
       - name: Build
         run: npm run build
+        env:
+          APP_TAG: ${{ github.event.client_payload.tag }}
+          GITHUB_TOKEN: ${{ github.token }}
+          APP_REPO_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

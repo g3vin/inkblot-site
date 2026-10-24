@@ -1,0 +1,78 @@
+---
+/**
+ * Shot — an app capture from the screens registry, with no frame: a still, or a loop
+ * that plays like the places' footage (src/scripts/footage.ts).
+ *
+ * With Paper and Ink captures, the one matching the visitor's theme shows and the other
+ * never loads; `theme` pins one (the roster's cut is always dark). A Midnight capture
+ * stands in for Ink where there's no Ink one. A loop with a rest frame shows it where the
+ * loop doesn't play (phones, reduced motion), and carries its steps' times (data-marks)
+ * for a caption to follow. `fit="cover"` fills
+ * the parent and crops, for a capture laid in a frame of its own shape (the split
+ * window's panes). Renders nothing when the screen has no capture yet: the caller holds
+ * the space with its placeholder (AppWindow, SplitSection, IndexList).
+ */
+import { SCREENS } from '../data/screens'
+import type { Still, Loop } from '../data/app'
+
+interface Props {
+  screen: string
+  theme?: 'auto' | 'light' | 'dark'
+  fit?: 'width' | 'cover'
+  sizes?: string
+  /** Leave the alt text off where the surrounding words already say what this shows. */
+  decorative?: boolean
+  class?: string
+}
+const { screen: id, theme = 'auto', fit = 'width', sizes = '(min-width: 1100px) 66vw, 100vw', decorative = false, class: className } = Astro.props
+const screen = SCREENS[id]
+if (!screen) throw new Error(`Shot: no screen "${id}" in src/data/screens.ts`)
+
+type Shown = Still | Loop
+const shown = (c: unknown) => (c && (c as Shown).kind !== 'sequence' ? (c as Shown) : undefined)
+const light = shown(screen.shot?.light)
+const dark = shown(screen.shot?.dark) ?? shown(screen.shot?.midnight)
+const pinned = theme === 'light' ? (light ?? dark) : theme === 'dark' ? (dark ?? light) : null
+// Pinned, or one capture: it shows under both themes. Both: each under its own.
+const captures: [Shown, string][] = pinned
+  ? [[pinned, '']]
+  : light && dark ? [[light, 'shot--light'], [dark, 'shot--dark']] : light || dark ? [[(light ?? dark)!, '']] : []
+const alt = decorative ? '' : screen.alt
+---
+{captures.map(([c, themeClass]) => c.kind === 'loop'
+  ? (
+    <div class:list={['media', 'shot', `shot--${fit}`, themeClass, className]} style={fit === 'width' ? `aspect-ratio: ${c.width} / ${c.height}` : undefined}
+      data-footage={c.mp4} data-footage-webm={c.webm} data-footage-label="the app recording"
+      data-marks={c.marks ? JSON.stringify(c.marks) : undefined}>
+      {c.rest
+        ? <picture><source type="image/avif" srcset={c.rest.avif} /><img src={c.rest.webp} width={c.width} height={c.height} alt={alt} loading="lazy" decoding="async" /></picture>
+        : <img src={c.poster} width={c.width} height={c.height} alt={alt} loading="lazy" decoding="async" />}
+      <button class="media__pause" type="button" aria-label="Pause the app recording"></button>
+    </div>
+  )
+  : (
+    <picture class:list={['shot', `shot--${fit}`, themeClass, className]}>
+      <source type="image/avif" srcset={c.avif} sizes={sizes} />
+      <img src={c.src} srcset={c.webp} sizes={sizes} width={c.width} height={c.height} alt={alt} loading="lazy" decoding="async" />
+    </picture>
+  ))}
+
+<script>
+  import '../scripts/footage'
+</script>
+
+<style>
+  .shot { display: block; }
+  .shot--width img { width: 100%; height: auto; }
+  .shot--cover { position: absolute; inset: 0; }
+  .shot--cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .shot.media { background: var(--bg-raised); }
+  .shot.media picture { display: block; height: 100%; }
+  .shot--dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme])) .shot--light { display: none; }
+    :global(:root:not([data-theme])) .shot--dark { display: block; }
+  }
+  :global(:root[data-theme='ink']) .shot--light, :global(:root[data-theme='black']) .shot--light { display: none; }
+  :global(:root[data-theme='ink']) .shot--dark, :global(:root[data-theme='black']) .shot--dark { display: block; }
+</style>

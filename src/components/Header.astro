@@ -1,0 +1,283 @@
+---
+/**
+ * Header — the wordmark, the main links and a "Download" link named for the visitor's
+ * device. `over` is text only, floating over a picture hero; `solid` has its own ground.
+ *
+ * Rest the cursor on a link and the header is cut along its top edge, above the link,
+ * and pulled open downward onto a preview — the feature list's cut, turned upside down.
+ * The top edge stays put; the letters, the wordmark, the Download link and the bar's
+ * ground bend down out of the way. While it's open, the cut follows the cursor across the
+ * links on a spring, thinning as it moves fast and filling back out over the link it
+ * settles on. Keyboard focus opens a link too. Pointer and keyboard only; on touch the
+ * header stays still.
+ *
+ * The link letters are split into spans so they can bend, so each link carries its
+ * words as an aria-label and the spans are hidden from assistive tech.
+ */
+import Wordmark from './Wordmark.astro'
+import { HEADER_NAV } from '../data/nav'
+import { DOWNLOAD_ALL } from '../data/release'
+
+interface Props { variant?: 'over' | 'solid' }
+const { variant = 'solid' } = Astro.props
+const letters = (text: string) => text.split(' ').map((w) => [...w])
+---
+<header class:list={['header', `header--${variant}`]}>
+  <div class="wrap header__row">
+    <a class="header__home" href="/" aria-label="Inkblot, home"><Wordmark onMedia={variant === 'over'} /></a>
+    <nav aria-label="Main">
+      {HEADER_NAV.map((l) => (
+        <a href={l.href} data-name={l.label} aria-label={l.label} class:list={{ 'is-mobile': l.mobile }} aria-current={Astro.url.pathname === l.href ? 'page' : undefined}>
+          <span aria-hidden="true">{letters(l.label).map((w, i) => <>{i > 0 && ' '}<span class="word">{w.map((c) => <span class="ch">{c}</span>)}</span></>)}</span>
+        </a>
+      ))}
+    </nav>
+    <a class="header__dl" href={DOWNLOAD_ALL} data-download data-download-short><span data-download-label>Download</span></a>
+  </div>
+  <div class="header__eye" aria-hidden="true">
+    <svg class="header__lips" focusable="false"><path /></svg>
+    <div class="header__labels"><p class="header__label meta"></p><p class="header__label meta"></p></div>
+  </div>
+</header>
+
+<style>
+  /* Scrolls away with the page, as on the landing; z-index keeps the opening over what's below */
+  .header { position: relative; z-index: 20; }
+  .header__row { display: flex; align-items: center; gap: 1.5rem; min-height: 64px; }
+  nav { display: flex; gap: 1.5rem; margin-left: auto; font: 500 0.9375rem/1 var(--font-ui); }
+  nav a, .header__dl { text-decoration: none; color: var(--text-2); }
+  nav a:hover, nav a.is-open, .header__dl:hover { color: var(--text); }
+  .header__dl { font: 600 0.9375rem/1 var(--font-ui); padding: 10px 0; color: var(--text); }
+  nav a[aria-current='page'] { color: var(--text); }
+  .word { white-space: nowrap; }
+  .ch { display: inline-block; }
+  .header.is-live .ch, .header.is-live .header__home, .header.is-live .header__dl { will-change: transform; }
+  @media (max-width: 760px) {
+    nav a:not(.is-mobile) { display: none; }
+  }
+
+  /* The ground is its own layer, so it can be pulled down in the shape of the cut */
+  .header--solid::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: var(--bg);
+  }
+  .header--solid.is-bent::before { bottom: calc(-1 * var(--reach, 0px)); clip-path: var(--ground); }
+
+  /* Over a picture: no bar, just text */
+  .header--over { position: absolute; top: 0; left: 0; right: 0; color: var(--on-media); }
+  .header--over nav a, .header--over .header__dl { color: var(--on-media); }
+  .header--over nav a:hover, .header--over .header__dl:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+
+  .header__eye { display: none; }
+  :global(.js) .header__eye {
+    display: block; position: absolute; left: 0; top: 0; width: 100%; height: 200px; z-index: 2; pointer-events: none; overflow: hidden;
+    background: #12100e; clip-path: inset(50%);
+  }
+  @media (prefers-color-scheme: dark) { :global(.js) .header__eye { background: #0b0a09; } }
+  .header__lips { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .header__lips path { fill: none; stroke: rgba(0, 0, 0, 0.55); stroke-width: 14; filter: blur(5px); }
+  .header__labels { position: absolute; inset: 0; opacity: clamp(0, calc(var(--h, 0px) / 80px - 0.4), 1); }
+  /* Each preview sits still under its own link, and the cut slides over it; the outgoing
+   * one fades as the incoming one comes up. */
+  .header__label {
+    position: absolute; left: var(--lx, 50%); top: calc(var(--h, 0px) * 0.45);
+    transform: translate(-50%, -50%); white-space: nowrap; color: var(--night-text); font-size: 0.75rem;
+    opacity: 0; transition: opacity 200ms var(--ease-out, ease-out);
+  }
+  .header__label.is-on { opacity: 1; transition-duration: 280ms; }
+</style>
+
+<script>
+  import { add, kick, clamp, ease, finePointer, reduceMotion } from '../scripts/frame'
+
+  document.querySelectorAll<HTMLElement>('.header').forEach((header) => {
+    const links = [...header.querySelectorAll<HTMLAnchorElement>('nav a')]
+    const eyeEl = header.querySelector<HTMLElement>('.header__eye')!
+    const lips = header.querySelector<SVGPathElement>('.header__lips path')!
+    const labels = [...header.querySelectorAll<HTMLElement>('.header__label')]
+
+    // Link letters bend one by one; the wordmark and Download link move whole.
+    const movers = [
+      ...[...header.querySelectorAll<HTMLElement>('nav .ch')].map((el) => ({ el, x: 0, y: 0, off: 0 })),
+      ...[...header.querySelectorAll<HTMLElement>('.header__home, .header__dl')].map((el) => ({ el, x: 0, y: 0, off: 0 })),
+    ]
+    let W = 0, B = 0, dirty = true
+    function layout() {
+      const hr = header.getBoundingClientRect()
+      W = hr.width; B = hr.height
+      for (const m of movers) {
+        const r = m.el.getBoundingClientRect()
+        m.x = r.left - hr.left + r.width / 2
+        m.y = r.top - hr.top + r.height / 2 - m.off
+      }
+      lips.ownerSVGElement!.setAttribute('viewBox', `0 0 ${W} 200`)
+      dirty = false
+    }
+    document.fonts?.ready.then(() => { dirty = true; kick() })
+
+    const eye = { x: 0, h: 0, target: 0, link: null as HTMLAnchorElement | null }
+    // Opens in 300 ms and closes in 200 ms, eased in and out, as the feature list does.
+    const anim = { from: 0, t0: -1, dur: 300 }
+    function aim(target: number) {
+      if (target === eye.target) return
+      anim.from = eye.h; anim.t0 = -1; anim.dur = target ? 300 : 200
+      eye.target = target
+      kick()
+    }
+    // L is the opening's half-width, H its full depth below the top edge.
+    const size = () => ({ L: Math.min(220, W * 0.2), H: Math.min(80, W * 0.06) })
+    // The same bell as the feature list: flat tails, a narrower peak, exactly 0 at ±1.
+    const G1 = Math.exp(-1 / (2 * 0.3 * 0.3))
+    function bell(u: number) { return u > -1 && u < 1 ? (Math.exp(-(u * u) / (2 * 0.3 * 0.3)) - G1) / (1 - G1) : 0 }
+    // Moving between links, the cut's centre is sprung toward the link under the cursor,
+    // leaning a little after the cursor itself. Moving fast, it thins and spreads like a
+    // drop of ink pulled along, then fills back out as it settles.
+    const glide = { x: 0, v: 0, to: 0, sq: 0, t: -1 }
+    let cursorX: number | null = null
+    // The cut's depth and half-width as drawn this frame, squash and all.
+    const cur = { h: 0, L: 1 }
+    function lens(x: number) { return cur.h * bell((x - eye.x) / cur.L) }
+    function push(x: number) { return cur.h * bell((x - eye.x) / (cur.L * 1.3)) }
+
+    function release(link: HTMLAnchorElement) {
+      link.classList.remove('is-open')
+      header.classList.remove('is-live')
+    }
+    function openLink(link: HTMLAnchorElement) {
+      if (dirty) layout()
+      if (eye.link && eye.link !== link) release(eye.link)
+      header.classList.add('is-live')
+      const hr = header.getBoundingClientRect(), r = link.getBoundingClientRect()
+      const { L, H } = size()
+      const x = clamp(r.left + r.width / 2 - hr.left, L * 0.7, W - L * 0.7)
+      // Already open (or still closing): slide over. Shut: open where the link is.
+      if (eye.h > 0.3) { glide.to = x; kick() }
+      else { eye.x = glide.x = glide.to = x; glide.v = 0 }
+      if (eye.link !== link) {
+        // The idle label takes the new preview, under the new link, and fades up.
+        const next = labels.find((l) => !l.classList.contains('is-on')) ?? labels[0]
+        labels.forEach((l) => l.classList.remove('is-on'))
+        next.textContent = `[${link.dataset.name} preview]`
+        next.style.setProperty('--lx', `${x.toFixed(1)}px`)
+        next.classList.add('is-on')
+      }
+      eye.link = link
+      link.classList.add('is-open')
+      header.style.setProperty('--reach', `${(H + 24).toFixed(0)}px`)
+      aim(H)
+    }
+    function close() { aim(0) }
+
+    function nearest(cx: number) {
+      let best: HTMLAnchorElement | null = null, bd = Infinity, lo = Infinity, hi = -Infinity
+      for (const a of links) {
+        const r = a.getBoundingClientRect()
+        if (!r.width) continue
+        lo = Math.min(lo, r.left); hi = Math.max(hi, r.right)
+        const d = Math.abs(cx - (r.left + r.right) / 2)
+        if (d < bd) { bd = d; best = a }
+      }
+      return cx > lo - 24 && cx < hi + 24 ? best : null
+    }
+
+    let rest: ReturnType<typeof setTimeout> | undefined
+    let over: HTMLAnchorElement | null = null
+    if (finePointer) {
+      // Watched on the window, since the pulled-open header reaches below its own box.
+      window.addEventListener('pointermove', (e) => {
+        const hr = header.getBoundingClientRect(), x = e.clientX - hr.left, y = e.clientY - hr.top
+        const link = (e.target as Element).closest?.<HTMLAnchorElement>('nav a')
+        let mine = link && links.includes(link) ? link : null
+        // Inside the header as it's now shaped, bulge and all, with a little room below it
+        // while open, so being near the text is enough.
+        const inside = x >= 0 && x <= W && y >= 0 && y <= (B || hr.height) + push(x) + (eye.h > 0.3 ? 32 : 0)
+        // Once open, the cursor needn't touch a link's text: the nearest link along the
+        // bar, within the run of links, is the one it's on.
+        if (!mine && inside && eye.h > 0.3) mine = nearest(e.clientX)
+        if (eye.target && !mine && !inside) close()
+        cursorX = inside ? x : null
+        if (eye.target) kick()
+        if (mine === over) return
+        over = mine
+        clearTimeout(rest)
+        if (!mine || (mine === eye.link && eye.target)) return
+        // Opening from shut waits for the cursor to come to rest, so passing over stays
+        // quiet; once open (or still closing), the cut goes after each link it crosses.
+        if (eye.h > 0.3) openLink(mine)
+        else rest = setTimeout(() => { if (over === mine) openLink(mine) }, 420)
+      }, { passive: true })
+      document.documentElement.addEventListener('pointerleave', () => { over = null; cursorX = null; clearTimeout(rest); close() })
+    }
+    header.addEventListener('focusin', (e) => { const a = (e.target as Element).closest<HTMLAnchorElement>('nav a'); if (a?.matches(':focus-visible')) openLink(a) })
+    header.addEventListener('focusout', close)
+
+    add(header, {
+      resize() { dirty = true },
+      tick(t) {
+        if (dirty) layout()
+        if (anim.t0 < 0) anim.t0 = t
+        const k = reduceMotion ? 1 : clamp((t - anim.t0) / anim.dur, 0, 1)
+        eye.h = anim.from + (eye.target - anim.from) * ease(k)
+        // The glide: a spring a touch under critical, so a long jump overshoots a hair.
+        const dt = glide.t < 0 ? 1 / 60 : Math.min(0.048, (t - glide.t) / 1000)
+        glide.t = t
+        const { L: L0 } = size()
+        const lean = cursorX !== null && eye.target ? clamp((cursorX - glide.to) * 0.18, -18, 18) : 0
+        const goal = clamp(glide.to + lean, L0 * 0.7, W - L0 * 0.7)
+        let gliding = false
+        if (reduceMotion) { glide.x = goal; glide.v = 0; glide.sq = 0 }
+        else {
+          glide.v += (320 * (goal - glide.x) - 30 * glide.v) * dt
+          glide.x += glide.v * dt
+          const sq = clamp(Math.abs(glide.v) / 2000, 0, 0.5)
+          // Thins quickly as it speeds up, fills back slower as it settles.
+          glide.sq += (sq - glide.sq) * Math.min(1, dt * (sq > glide.sq ? 16 : 7))
+          gliding = Math.abs(goal - glide.x) > 0.2 || Math.abs(glide.v) > 2 || glide.sq > 0.003
+          if (!gliding) { glide.x = goal; glide.v = 0; glide.sq = 0 }
+        }
+        eye.x = glide.x
+        if (!eye.target && Math.abs(eye.h) < 0.3) {
+          eye.h = 0
+          if (eye.link) { release(eye.link); eye.link = null; labels.forEach((l) => l.classList.remove('is-on')) }
+        }
+        const h = Math.max(0, eye.h)
+        cur.h = h * (1 - glide.sq)
+        cur.L = L0 * (1 + glide.sq * 0.6)
+        // Everything in the bar moves down, turned to the curve's slope.
+        for (const m of movers) {
+          const off = h ? push(m.x) : 0
+          if (Math.abs(off - m.off) <= 0.05) continue
+          m.off = off
+          if (!off) { m.el.style.transform = ''; continue }
+          const slope = (push(m.x + 2) - push(m.x - 2)) / 4
+          m.el.style.transform = `translateY(${off.toFixed(2)}px) rotate(${Math.atan(slope).toFixed(4)}rad)`
+        }
+        if (h > 0.3) {
+          const L = cur.L
+          // The cut, hanging from the top edge.
+          let up = '', down = ''
+          for (let i = 0; i <= 64; i++) {
+            const x = eye.x - L + (2 * L * i) / 64
+            down += `${i ? ' L ' : 'M '}${x.toFixed(1)} ${lens(x).toFixed(1)}`
+            up = ` L ${x.toFixed(1)} 0` + up
+          }
+          const shape = `${down}${up} Z`
+          eyeEl.style.clipPath = `path('${shape}')`
+          lips.setAttribute('d', shape)
+          eyeEl.style.setProperty('--x', `${eye.x.toFixed(1)}px`)
+          eyeEl.style.setProperty('--h', `${cur.h.toFixed(1)}px`)
+          // The bar's ground, pulled down by the same push.
+          const P = cur.L * 1.3
+          const pts: string[] = []
+          for (let i = 0; i <= 64; i++) { const x = eye.x - P + (2 * P * i) / 64; pts.push(`${x.toFixed(1)} ${(B + push(x)).toFixed(1)}`) }
+          header.style.setProperty('--ground', `path('M0 0 L${W} 0 L${W} ${B} L${pts.reverse().join(' L')} L0 ${B} Z')`)
+          header.classList.add('is-bent')
+        } else {
+          eyeEl.style.clipPath = ''
+          header.classList.remove('is-bent')
+        }
+        return k < 1 || gliding
+      },
+    })
+  })
+</script>

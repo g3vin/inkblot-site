@@ -1,0 +1,9 @@
+---
+/**
+ * Slot — a labelled placeholder at an asset's final aspect ratio, so the real asset drops
+ * in with no layout shift. Every slot must be gone before launch.
+ */
+interface Props { aspect?: string; label: string; class?: string }
+const { aspect = '16 / 10', label, class: className } = Astro.props
+---
+<div class:list={['slot', className]} style={`--ar: ${aspect}`}><span>{label}</span></div>

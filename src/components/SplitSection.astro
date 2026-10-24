@@ -1,0 +1,147 @@
+---
+/**
+ * SplitSection — "The whole story, in one window." The app window rising over the hero's
+ * foot. It starts the full width of the page; as you scroll it shrinks to the right and
+ * the writer's problem fades in beside it.
+ *
+ * In the window, the app's own recording (screens.ts: hero): one chapter; the cast canvas
+ * dragged out of the file tree onto the page splits the window; the map dragged over the
+ * chapter, then a galaxy over the map; back to the chapter, and the split closed. Nothing
+ * is staged here: every move is the app's. One caption beside it names the step that's
+ * playing, timed by the recording's own marks (data-marks, from the app's capture).
+ *
+ * The window is absolutely placed over a hidden copy of itself at its resting size, so its
+ * shrinking never moves the page. With no script, under reduced motion or on a phone (no
+ * loop plays there), the window rests at its smaller size on the recording's rest frame
+ * (the canvas beside the map), the caption is the last step, and the text shows from the
+ * start.
+ */
+import Shot from './Shot.astro'
+import Slot from './Slot.astro'
+import { SCREENS } from '../data/screens'
+
+interface Props {
+  title: string
+  problem: string
+  captions: string[]
+  facts: string[]
+}
+const { title, problem, captions, facts } = Astro.props
+const screen = SCREENS.hero
+---
+<section class="split" id="window" aria-labelledby="split-title">
+  <h2 class="visually-hidden" id="split-title">{title}</h2>
+  <div class="wrap split__grid">
+    <div class="split__frame">
+      <div class="window split__spacer" aria-hidden="true"><div class="split__screen"></div></div>
+      <figure class="window split__window">
+        <div class="split__screen">
+          {screen.shot
+            ? <Shot screen="hero" sizes="(min-width: 900px) 60vw, 100vw" />
+            : <Slot label={screen.placeholder} class="slot--bare split__slot" />}
+        </div>
+      </figure>
+    </div>
+    <div class="split__head">
+      <p class="split__problem">{problem}</p>
+      <ol class="split__steps" aria-hidden="true">
+        {captions.map((c, i) => <li data-step={i} class:list={[{ 'is-on': i === 0 }]}>{c}</li>)}
+      </ol>
+      <ul class="facts meta split__facts">{facts.map((f) => <li>{f}</li>)}</ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .split {
+    --p: 1; /* 0: the window spans the page; 1: it rests beside the text */
+    position: relative; z-index: 2; color: var(--on-brand);
+    margin-top: clamp(-8rem, -9.5vw, -5rem);
+  }
+  :global(.js) .split:not(.is-static) { --p: 0; }
+  .split__grid {
+    container-type: inline-size;
+    display: grid; gap: clamp(1.5rem, 3vw, 2.5rem) clamp(2rem, 5vw, 5rem);
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr); align-items: start;
+  }
+  .split__frame { grid-column: 2; grid-row: 1; position: relative; }
+  .split__spacer { visibility: hidden; box-shadow: none; }
+  /* From the full width of the page (100cqw) down to its own column (100%), toward the right */
+  .split__window { position: absolute; top: 0; right: 0; width: calc(100cqw + (100% - 100cqw) * var(--p)); }
+
+  .split__head {
+    grid-column: 1; grid-row: 1; align-self: center; display: grid; gap: 1.5rem;
+    padding-top: clamp(1rem, 3vw, 3rem); /* a touch below centre, clear of the hero's foot */
+    opacity: var(--p); transform: translateY(calc((1 - var(--p)) * 1.5rem));
+  }
+  .split__problem { font: 400 var(--step-1)/1.45 var(--font-read); max-width: 34ch; text-wrap: pretty; }
+  .split__head :global(.meta) { color: inherit; }
+  /* One live caption: the steps share one cell and cross-fade, so the column never moves */
+  .split__steps { list-style: none; margin: 0; padding: 0; display: grid; font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; }
+  .split__steps li { grid-area: 1 / 1; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+  .split__steps li.is-on { opacity: 1; }
+  .split__facts { list-style: none; margin: 0; padding: 0; }
+  .split__facts li { opacity: 0.85; }
+
+  @media (max-width: 900px) {
+    .split__grid { grid-template-columns: 1fr; }
+    .split__frame { grid-column: 1; }
+    .split__head { grid-column: 1; grid-row: 2; padding-top: 0; }
+  }
+
+  /* The window: the recording, or its placeholder, at the app's 16 / 10 */
+  .split__screen { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--slot-bg); }
+  .split__screen :global(.shot) { position: absolute; inset: 0; }
+  .split__screen :global(.shot img), .split__screen :global(.shot video) { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .split__screen :global(.split__slot) { aspect-ratio: auto; height: 100%; border: 0; background: none; }
+
+  /* Resting state (no script, reduced motion): the window in its column, on its rest frame */
+  .split.is-static .split__spacer, :global(html:not(.js)) .split__spacer { display: none; }
+  .split.is-static .split__window, :global(html:not(.js)) .split__window { position: relative; width: auto; }
+  .split.is-static .split__steps li, :global(html:not(.js)) .split__steps li { opacity: 0; }
+  .split.is-static .split__steps li:last-child, :global(html:not(.js)) .split__steps li:last-child { opacity: 1; }
+</style>
+
+<script>
+  import { add, ease, seg, reduceMotion } from '../scripts/frame'
+
+  // The recording's marks, in order, and the caption each one brings up. It ends where it
+  // began, so closing the split brings back the first.
+  const STEPS: [string, number][] = [['one', 0], ['canvas', 1], ['map', 2], ['any', 3], ['closed', 0]]
+
+  document.querySelectorAll<HTMLElement>('.split').forEach((section) => {
+    if (reduceMotion) { section.classList.add('is-static'); return }
+    const frame = section.querySelector<HTMLElement>('.split__frame')!
+    const caps = [...section.querySelectorAll<HTMLElement>('.split__steps li')]
+    // The loop's figure, whichever theme's shows (the other is display: none).
+    const figures = [...section.querySelectorAll<HTMLElement>('[data-marks]')]
+    const wide = window.matchMedia('(min-width: 768px)').matches
+    const show = (step: number) => caps.forEach((c, i) => c.classList.toggle('is-on', i === step))
+
+    // Which caption a moment in the recording belongs to.
+    function stepAt(figure: HTMLElement, t: number) {
+      const marks = JSON.parse(figure.dataset.marks!) as Record<string, number>
+      let step = 0
+      for (const [name, cap] of STEPS) if (marks[name] != null && t >= marks[name]) step = cap
+      return step
+    }
+
+    let settled = false
+    add(section, {
+      tick() {
+        // Settled once the window's resting top is a fifth of the way down the screen.
+        const top = frame.getBoundingClientRect().top + window.scrollY
+        const p = seg(window.scrollY, 0, top - window.innerHeight * 0.2)
+        section.style.setProperty('--p', ease(p).toFixed(4))
+        settled = p >= 1
+        // The caption follows the recording while it plays (footage.ts adds the video once
+        // the page has loaded, and never on phones: there the caption is the last step).
+        const video = figures.map((f) => [f, f.querySelector('video')] as const).find(([f, v]) => v && f.getClientRects().length)
+        if (!video) { show(figures.length && !wide ? caps.length - 1 : 0); return !settled || (wide && figures.length > 0) }
+        const [figure, v] = video
+        show(stepAt(figure, v.currentTime))
+        return true
+      },
+    })
+  })
+</script>

@@ -1,0 +1,33 @@
+---
+/**
+ * MediaLoop — a place from the registry: its poster first, then its muted loop after
+ * the page has loaded. The loop never plays on phones, under Save-Data or reduced
+ * motion; it pauses offscreen and in a hidden tab, and the pause control is remembered
+ * (WCAG 2.2.2).
+ */
+import { PLACES } from '../data/places'
+
+interface Props {
+  place: string
+  /** The hero's poster loads eagerly; every other one waits until it's near. */
+  priority?: boolean
+  class?: string
+  focus?: string
+}
+const { place: id, priority = false, class: className, focus } = Astro.props
+const place = PLACES[id]
+if (!place) throw new Error(`MediaLoop: no place "${id}" in src/data/places.ts`)
+const posters = place.posters ?? [{ src: place.image, width: 1280 }]
+const srcset = posters.map((p) => `${p.src} ${p.width}w`).join(', ')
+const largest = posters[posters.length - 1]
+---
+<figure class:list={['media', className]} data-footage={priority ? place.video : null} data-footage-webm={priority ? place.videoWebm : null} style={`--focus-pos: ${focus ?? place.focus}`}>
+  <img src={largest.src} srcset={srcset} sizes="100vw" width="1280" height="720" alt=""
+    loading={priority ? 'eager' : 'lazy'} fetchpriority={priority ? 'high' : 'auto'} decoding="async" />
+  {priority && place.video && <button class="media__pause" type="button" aria-label="Pause background footage"></button>}
+  <slot />
+</figure>
+
+<script>
+  import '../scripts/footage'
+</script>

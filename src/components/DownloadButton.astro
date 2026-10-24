@@ -1,0 +1,21 @@
+---
+/**
+ * DownloadButton — "Download free" until scripts/device.ts knows the visitor's device,
+ * then "Download for macOS", "Get it on Google Play" and so on.
+ */
+import { PLATFORMS, DOWNLOAD_ALL } from '../data/release'
+
+interface Props {
+  /** `on-media` is paper-white, for use over footage. */
+  variant?: 'primary' | 'on-media'
+}
+const { variant = 'primary' } = Astro.props
+const labels = Object.fromEntries(PLATFORMS.map((p) => [`data-label-${p.id}`, p.action]))
+---
+<a class:list={['btn', 'btn--hero', `btn--${variant}`]} href={DOWNLOAD_ALL} data-download {...labels}><span data-download-label>Download free</span></a>
+
+<style>
+  .btn--hero { min-height: 56px; padding-inline: 1.75rem; font-size: 1.125rem; }
+  .btn--on-media { background: var(--on-media); color: var(--on-media-ink); }
+  .btn--on-media:hover { background: #fff; }
+</style>

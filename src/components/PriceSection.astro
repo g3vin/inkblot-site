@@ -1,0 +1,28 @@
+---
+/**
+ * PriceSection — the price, said once, at the end of the home page: "Free." and what that
+ * means, on brand green like the Band.
+ */
+import { PRICE } from '../data/site'
+---
+<section class="section price" id="price" aria-label="Price">
+  <div class="wrap price__row">
+    <p class="display price__free">{PRICE.title}</p>
+    <div class="price__terms">
+      <p class="price__line">{PRICE.line}</p>
+      <p class="price__body">{PRICE.body}</p>
+      <p class="price__note">{PRICE.note}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .price { background: var(--brand); color: var(--on-brand); padding-block: clamp(4rem, 8vw, 7rem) clamp(3rem, 6vw, 5rem); }
+  .price__row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 1rem clamp(2rem, 5vw, 4rem); }
+  .price__free { font-size: var(--step-4); letter-spacing: var(--tracking-hero); line-height: 0.85; }
+  .price__terms { display: grid; gap: 0.9rem; max-width: 52ch; }
+  .price__line { font: 600 var(--step-2)/1.15 var(--font-display); letter-spacing: -0.03em; }
+  .price__body { color: color-mix(in srgb, var(--on-brand) 85%, var(--brand)); }
+  .price__note { font: 400 0.9375rem/1.5 var(--font-ui); color: color-mix(in srgb, var(--on-brand) 75%, var(--brand)); }
+  @media (max-width: 700px) { .price__row { grid-template-columns: 1fr; } }
+</style>

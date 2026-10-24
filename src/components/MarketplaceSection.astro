@@ -1,0 +1,71 @@
+---
+/**
+ * MarketplaceSection — a short picture band ("Read each other.", its line and the
+ * four-step loop), then a wide review window rising out of the fade, then the rules.
+ * It has its own dark ground in every theme.
+ */
+import MediaLoop from './MediaLoop.astro'
+import AppWindow from './AppWindow.astro'
+
+interface Props {
+  eyebrow: string
+  title: string
+  line: string
+  place: string
+  placeTag?: string
+  steps: { title: string; text: string }[]
+  screen: string
+  rules: string[]
+}
+const { eyebrow, title, line, place, placeTag, steps, screen, rules } = Astro.props
+---
+<section class="market" id="marketplace" aria-labelledby="market-title">
+  <div class="market__band">
+    <MediaLoop place={place} focus="30% 70%" class="market__media">
+      {placeTag && <span class="market__tag meta">{placeTag}</span>}
+    </MediaLoop>
+    <div class="wrap market__split">
+      <div class="market__head">
+        <p class="eyebrow market__eyebrow">{eyebrow}</p>
+        <h2 class="display market__title" id="market-title">{title}</h2>
+        <p class="market__line">{line}</p>
+      </div>
+      <ol class="market__loop">
+        {steps.map((s, i) => <li><span class="meta">{String(i + 1).padStart(2, '0')}</span><h3>{s.title}</h3><p>{s.text}</p></li>)}
+      </ol>
+    </div>
+  </div>
+  <div class="wrap market__body">
+    <AppWindow screen={screen} variant="fade" />
+    <ul class="market__rules">{rules.map((r) => <li>{r}</li>)}</ul>
+  </div>
+</section>
+
+<style>
+  .market {
+    --bg: var(--act-bg); --bg-raised: #1d1b18; --text: #f2eee6; --text-2: #d8d2c6; --text-muted: #a69f93;
+    --line: #2d2a25; --line-strong: #3d3933; --slot-bg: #1f1c19; --slot-ink: #a69f93; --tile-edge: rgba(255, 244, 222, 0.16);
+    background: var(--bg); color: var(--text);
+  }
+  .market__band { position: relative; isolation: isolate; color: var(--on-media); display: flex; align-items: flex-end; }
+  .market :global(.market__media) { position: absolute; inset: 0; z-index: -1; }
+  .market :global(.market__media)::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18, 16, 14, 0.35), var(--act-bg)); }
+  .market__tag { position: absolute; top: 1rem; right: 1rem; z-index: 3; background: rgba(0, 0, 0, 0.55); color: #e9e2d6; padding: 4px 8px; }
+  .market__split { width: 100%; display: grid; gap: 2rem 4rem; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: end; padding-block: clamp(5rem, 9vw, 7rem) clamp(2rem, 4vw, 3rem); }
+  @media (max-width: 860px) { .market__split { grid-template-columns: 1fr; } }
+  .market__head { display: grid; gap: 1rem; }
+  .market__eyebrow { color: var(--on-media); opacity: 0.85; }
+  .market__title { font-size: max(calc(var(--step-fill) * 0.26), 3rem); letter-spacing: var(--tracking-hero); line-height: 0.82; margin-left: -0.05em; color: var(--on-media); }
+  .market__line { font: 600 var(--step-1)/1.15 var(--font-display); letter-spacing: -0.035em; max-width: 34ch; border-top: 2px solid color-mix(in srgb, var(--on-media) 80%, transparent); padding-top: 1rem; }
+  .market__loop {
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 1.5rem; grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid color-mix(in srgb, var(--on-media) 45%, transparent); color: var(--on-media);
+  }
+  .market__loop li { display: grid; gap: 0.3rem; padding-top: 1rem; align-content: start; }
+  .market__loop h3 { font: 700 var(--step-2)/1 var(--font-ui); letter-spacing: -0.05em; }
+  .market__loop p { font: 400 0.9375rem/1.45 var(--font-ui); color: color-mix(in srgb, var(--on-media) 85%, transparent); }
+  .market__loop .meta { color: color-mix(in srgb, var(--on-media) 80%, transparent); }
+  .market__body { display: grid; gap: 2.5rem; padding-block: 1rem var(--section); }
+  .market__rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem 2rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .market__rules li { border-top: 1px solid var(--line-strong); padding-top: 0.6rem; color: var(--text-2); font: 500 0.9375rem/1.45 var(--font-ui); }
+</style>

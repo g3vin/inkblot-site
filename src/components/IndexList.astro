@@ -1,0 +1,376 @@
+---
+/**
+ * IndexList — the big typographic roster: a feature's name in Display, its benefit beside
+ * it, one row each, from src/data/features.ts.
+ *
+ * Rest the cursor on a row and the page is cut along the row's bottom rule, centred in
+ * the gap between the name and the benefit, and lifted open above the rule onto a drawing
+ * of the feature. The rule stays put; the rules and letters above it bend out of the way.
+ * Moving the cursor across rows opens each a little as it passes, leaving a short wake;
+ * scrolling under a still cursor opens nothing. On touch, a tap opens a row (a second tap
+ * follows its link); keyboard focus opens a row too. A full cut opens in 300 ms (420 ms
+ * when growing out of a peek) and closes in 200 ms, eased in and out.
+ *
+ * The letters are split into spans so they can part, so the link carries its words as
+ * an aria-label and the spans are hidden from assistive tech.
+ * Without script it's a plain list with ruled rows.
+ */
+import type { Feature } from '../data/features'
+import Shot from './Shot.astro'
+import { SCREENS } from '../data/screens'
+
+interface Props { eyebrow: string; features: Feature[] }
+const { eyebrow, features } = Astro.props
+// Letters get their own spans so they can part around the cut; words stay unbroken.
+const letters = (text: string) => text.split(' ').map((w) => [...w])
+// The features the app has a capture of; the rest open on their sketch.
+const shown = (f: Feature) => (f.shot && SCREENS[f.shot]?.shot ? f.shot : undefined)
+---
+<section class="roster" id="features" aria-labelledby="roster-title">
+  <div class="roster__page">
+    <div class="wrap">
+      <h2 class="eyebrow" id="roster-title">{eyebrow}</h2>
+      <ul class="roster__list">
+        {features.map((f) => (
+          <li>
+            <a href={f.href} data-scene={f.scene} data-shot={shown(f)} data-name={f.name} aria-label={`${f.name}: ${f.benefit}`}>
+              <span class="roster__name display" aria-hidden="true">{letters(f.name).map((w, i) => <>{i > 0 && ' '}<span class="word">{w.map((c) => <span class="ch">{c}</span>)}</span></>)}</span>
+              <span class="roster__benefit" aria-hidden="true">{letters(f.benefit).map((w, i) => <>{i > 0 && ' '}<span class="word">{w.map((c) => <span class="ch">{c}</span>)}</span></>)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <svg class="roster__rules" aria-hidden="true" focusable="false"></svg>
+  </div>
+  <div class="roster__eye" aria-hidden="true">
+    <div class="roster__scenes">
+      {features.filter(shown).map((f) => (
+        <div class="roster__shot" data-for={f.shot}><Shot screen={f.shot!} theme="dark" fit="cover" decorative sizes="(min-width: 900px) 40vw, 90vw" /></div>
+      ))}
+    </div>
+    <svg class="roster__lips" focusable="false"><path /></svg>
+    <p class="roster__label meta"></p>
+  </div>
+</section>
+
+<style>
+  .roster { position: relative; }
+  .roster__page { position: relative; background: var(--bg); padding-block: var(--section); }
+  .roster__list { list-style: none; margin: 1.25rem 0 0; padding: 0; border-top: 1px solid var(--line-strong); }
+  .roster__list a {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; gap: 0.25rem 2rem;
+    padding: 0.9rem 0; border-bottom: 1px solid var(--line-strong); text-decoration: none;
+  }
+  .roster__name { font-size: var(--step-3); line-height: 0.95; }
+  .roster__benefit { font: 500 var(--step-1)/1.3 var(--font-ui); letter-spacing: -0.015em; color: var(--text-2); }
+  .roster__list a:hover .roster__name, .roster__list a.is-open .roster__name { color: var(--brand); }
+  .word { white-space: nowrap; }
+  .ch { display: inline-block; }
+  /* While the list is in use, each letter gets its own compositor layer, so moving it
+   * doesn't re-rasterise the text around it. Off at rest, to keep memory down. */
+  .roster.is-live .ch { will-change: transform; }
+  @media (max-width: 760px) {
+    .roster__list a { grid-template-columns: 1fr; }
+    .roster__name { font-size: var(--step-2); }
+  }
+
+  .roster__rules, .roster__eye { display: none; }
+  /* With script, the rules are drawn as paths so they can bend */
+  :global(.js) .roster__list { border-top-color: transparent; }
+  :global(.js) .roster__list a { border-bottom-color: transparent; }
+  :global(.js) .roster__rules { display: block; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .roster__rules :global(path) { fill: none; stroke: var(--line-strong); stroke-width: 1; }
+  :global(.js) .roster__eye {
+    display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden;
+    background: #12100e; clip-path: inset(50%);
+  }
+  @media (prefers-color-scheme: dark) { :global(.js) .roster__eye { background: #0b0a09; } }
+  .roster__scenes {
+    /* The drawing drifts a little against the cut, so it reads as something behind the
+     * page rather than printed on it. */
+    position: absolute; left: var(--x, 50%); top: var(--y, 50%); width: calc(var(--L, 240px) * 1.85); aspect-ratio: 4 / 3;
+    transform: translate(-50%, -50%) translate(var(--px, 0px), var(--py, 0px));
+  }
+  .roster__scenes :global(svg), .roster__shot { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+  .roster__scenes :global(svg.is-on), .roster__shot.is-on { opacity: 1; }
+  .roster__shot { overflow: hidden; border-radius: var(--radius-card); }
+  .roster__lips { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .roster__lips path { fill: none; stroke: rgba(0, 0, 0, 0.55); stroke-width: 14; filter: blur(5px); }
+  .roster__label {
+    position: absolute; left: var(--x, 50%); top: calc(var(--y, 50%) + var(--h, 0px) * 0.32);
+    transform: translate(-50%, -50%); white-space: nowrap; color: var(--night-text); font-size: 0.75rem;
+    opacity: clamp(0, calc(var(--h, 0px) / 100px - 0.4), 1);
+  }
+</style>
+
+<script>
+  import { add, kick, clamp, ease, finePointer, reduceMotion } from '../scripts/frame'
+  import { sceneSvg } from '../scripts/featureScenes'
+
+  document.querySelectorAll<HTMLElement>('.roster').forEach((roster) => {
+    const list = roster.querySelector<HTMLElement>('.roster__list')!
+    const links = [...roster.querySelectorAll<HTMLAnchorElement>('[data-scene]')]
+    const rulesEl = roster.querySelector<SVGSVGElement>('.roster__rules')!
+    const eyeEl = roster.querySelector<HTMLElement>('.roster__eye')!
+    const scenesEl = roster.querySelector<HTMLElement>('.roster__scenes')!
+    const lips = roster.querySelector<SVGPathElement>('.roster__lips path')!
+    const label = roster.querySelector<HTMLElement>('.roster__label')!
+
+    const built: Record<string, Element> = {}
+    function scene(id: string) {
+      if (!built[id]) {
+        scenesEl.insertAdjacentHTML('beforeend', sceneSvg(id))
+        built[id] = scenesEl.lastElementChild!
+      }
+      return built[id]
+    }
+
+    // Names lift letter by letter; benefits also turn each letter to the curve's slope, so
+    // the line reads as text set along the arc.
+    const chars = [...roster.querySelectorAll<HTMLElement>('.ch')].map((el) => ({ el, x: 0, y: 0, off: 0, bend: !!el.closest('.roster__benefit') }))
+    let bounds: number[] = [], left = 0, right = 0, W = 0, dirty = true
+    const paths: SVGPathElement[] = []
+    const drawn: string[] = []
+    function layout() {
+      const pr = roster.getBoundingClientRect(), lr = list.getBoundingClientRect()
+      W = pr.width; left = lr.left - pr.left; right = lr.right - pr.left
+      bounds = [lr.top - pr.top, ...links.map((a) => a.getBoundingClientRect().bottom - pr.top)]
+      for (const c of chars) {
+        const r = c.el.getBoundingClientRect()
+        c.x = r.left - pr.left + r.width / 2
+        c.y = r.top - pr.top + r.height / 2 - c.off
+      }
+      rulesEl.setAttribute('viewBox', `0 0 ${pr.width} ${pr.height}`)
+      lips.ownerSVGElement!.setAttribute('viewBox', `0 0 ${pr.width} ${pr.height}`)
+      while (paths.length < bounds.length) paths.push(rulesEl.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'path')))
+      dirty = false
+    }
+    // Measure and build every drawing ahead of time, so a row's first opening doesn't
+    // start with a hitch while its drawing is made and the letters are measured.
+    // A feature the app has a capture of opens on it (rendered above); the rest on their sketch.
+    const shots = Object.fromEntries([...scenesEl.querySelectorAll<HTMLElement>('[data-for]')].map((el) => [el.dataset.for!, el]))
+    const sceneOf = (a: HTMLAnchorElement) => (a.dataset.shot && shots[a.dataset.shot]) || scene(a.dataset.scene!)
+    const prepare = () => { layout(); links.forEach((a) => sceneOf(a)) }
+    document.fonts?.ready.then(() => {
+      dirty = true; kick()
+      if ('requestIdleCallback' in window) requestIdleCallback(prepare, { timeout: 3000 }); else setTimeout(prepare, 1500)
+    })
+
+    // Each row has its own opening along its bottom rule. Passing over a row opens it a
+    // little at the cursor (a peek) and it closes again as the cursor moves on, so
+    // sweeping the list leaves a short wake. Resting on a row opens it fully, at the gap
+    // between its name and benefit, onto its drawing; only one row is ever fully open.
+    // Openings ease in and out: 300 ms to open fully, 200 ms to close; a peek rises in
+    // 220 ms and falls in 280 ms. The clock starts on the first frame drawn, so a late
+    // frame can't make it jump.
+    type Row = { link: HTMLAnchorElement; rule: number; y: number; x: number; v: number; goal: number; xFrom: number; h: number; target: number; from: number; t0: number; dur: number }
+    const rows: Row[] = links.map((link, i) => ({ link, rule: i + 1, y: 0, x: 0, v: 0, goal: 0, xFrom: 0, h: 0, target: 0, from: 0, t0: -1, dur: 300 }))
+    const rowOf = (a: Element | null) => rows.find((r) => r.link === a) ?? null
+    let full: Row | null = null, shown: Row | null = null
+    function aim(r: Row, target: number, dur: number) {
+      if (target === r.target) return
+      r.from = r.h; r.t0 = -1; r.dur = dur; r.target = target
+      kick()
+    }
+    // L is a full opening's half-width, H its full height above the rule.
+    const size = () => (finePointer ? { L: Math.min(460, W * 0.36), H: Math.min(96, W * 0.075) } : { L: W * 0.45, H: 64 })
+    const PEEK = 0.3
+    // A small opening is narrower too, so a peek reads as a drop rather than a slit.
+    const half = (r: Row) => { const { L, H } = size(); return L * (0.3 + 0.7 * clamp(r.h / H, 0, 1)) }
+    const place = (r: Row, x: number) => { const l = half(r) * 0.9; return clamp(x, left + l, right - l) }
+    // The opening's height at x, and the wider, softer push felt by the text above it.
+    // A bell curve, not a dome: flat tails that leave the rule gently, and a narrower peak.
+    // It's rescaled so it's exactly 0 at ±1, leaving no step where the curve meets the rule.
+    const G1 = Math.exp(-1 / (2 * 0.3 * 0.3))
+    function bell(u: number) { return u > -1 && u < 1 ? (Math.exp(-(u * u) / (2 * 0.3 * 0.3)) - G1) / (1 - G1) : 0 }
+    function lens(r: Row, x: number) { return r.h * bell((x - r.x) / half(r)) }
+    function push(r: Row, x: number) { return r.h * bell((x - r.x) / (half(r) * 1.3)) }
+    // Everything is pushed one way (up), so the push fades slowly over the rows above;
+    // a quick fade would crowd the open row into the one above it.
+    function falloff(d: number) { const a = Math.abs(d); return a < 100 ? 1 : Math.exp(-(a - 100) / 170) }
+    // The total upward push at (x, y) from every opening below y.
+    function lift(x: number, y: number, active: Row[]) {
+      let p = 0
+      for (const r of active) if (y < r.y) p += push(r, x) * falloff(y - r.y)
+      return p
+    }
+
+    let inside = false
+    function release(r: Row) {
+      r.link.classList.remove('is-open')
+      sceneOf(r.link).classList.remove('is-on')
+    }
+    function peek(r: Row, x: number) {
+      if (r === full) return
+      if (r === shown) { release(r); shown = null }
+      if (dirty) layout()
+      r.y = bounds[r.rule]
+      r.goal = x
+      if (r.h < 0.3) { r.x = place(r, x); r.v = 0 }
+      aim(r, size().H * PEEK, 220)
+    }
+    function shut(r: Row) {
+      if (r === full) full = null
+      aim(r, 0, r.target > size().H * PEEK ? 200 : 280)
+    }
+    // A row opens fully along its own bottom rule, centred in the gap between the name and
+    // the benefit, so the cut lands in the same place however the row is reached.
+    function openRow(link: HTMLAnchorElement) {
+      if (dirty) layout()
+      const r = rowOf(link)!
+      if (full && full !== r) shut(full)
+      if (shown && shown !== r) release(shown)
+      roster.classList.add('is-live')
+      const pr = roster.getBoundingClientRect()
+      const n = link.querySelector('.roster__name')!.getBoundingClientRect()
+      const b = link.querySelector('.roster__benefit')!.getBoundingClientRect()
+      const x = b.left > n.right ? (n.right + b.left) / 2 - pr.left : left + (right - left) * 0.62
+      const { L, H } = size()
+      r.y = bounds[r.rule]
+      r.goal = clamp(x, left + L * 0.9, right - L * 0.9)
+      // From a peek, the opening drifts over to the gap as it grows, on the same curve.
+      r.xFrom = r.h < 0.3 ? r.goal : r.x
+      r.v = 0
+      full = shown = r
+      link.classList.add('is-open')
+      const sv = sceneOf(link)
+      sv.getBoundingClientRect() // lay the drawing out before fading it in
+      sv.classList.add('is-on')
+      label.textContent = link.dataset.shot ? '' : `[${link.dataset.name} · screenshot to come]`
+      aim(r, H, r.h < 0.3 ? 300 : 420)
+    }
+    function close() { rows.forEach(shut) }
+
+    let rest: ReturnType<typeof setTimeout> | undefined
+    let over: HTMLAnchorElement | null = null
+    let lastX = NaN, lastY = NaN
+    if (finePointer) {
+      roster.addEventListener('pointermove', (e) => {
+        // Scrolling slides rows under a still cursor, and some browsers report that as a
+        // move. Only a cursor that really moved peeks or opens anything.
+        if (e.clientX === lastX && e.clientY === lastY) return
+        lastX = e.clientX; lastY = e.clientY
+        const pr = roster.getBoundingClientRect(), x = e.clientX - pr.left, y = e.clientY - pr.top
+        const link = (e.target as Element).closest<HTMLAnchorElement>('[data-scene]')
+        const { L, H } = size()
+        const onOpening = !!full && Math.abs(x - full.x) < L && y < full.y + 12 && y > full.y - H * 1.2
+        // Stay open while the cursor is on the open row or over the opening itself.
+        if (full && link !== full.link && !onOpening) shut(full)
+        const r = rowOf(link)
+        // Peeks follow the cursor across their row, and fall as it leaves.
+        for (const o of rows) if (o !== r && o !== full && o.target) shut(o)
+        if (r && r !== full) peek(r, x)
+        clearTimeout(rest)
+        over = link
+        if (!link || (full && (link === full.link || onOpening))) return
+        // Only a cursor that has come to rest opens a row fully.
+        rest = setTimeout(() => { if (over === link) openRow(link) }, 300)
+      })
+      roster.addEventListener('pointerenter', () => { inside = true; roster.classList.add('is-live') })
+      roster.addEventListener('pointerleave', () => { inside = false; over = null; clearTimeout(rest); close() })
+    } else {
+      // Touch: a tap opens the row; a second tap on the open row follows its link.
+      roster.addEventListener('click', (e) => {
+        const a = (e.target as Element).closest<HTMLAnchorElement>('[data-scene]')
+        if (!a || (full && a === full.link)) return
+        e.preventDefault()
+        openRow(a)
+      })
+      window.addEventListener('scroll', () => { if (full) close() }, { passive: true })
+    }
+    // Keyboard focus opens a row; the focus a tap or click brings with it doesn't.
+    roster.addEventListener('focusin', (e) => { const a = (e.target as Element).closest<HTMLAnchorElement>('[data-scene]'); if (a?.matches(':focus-visible')) openRow(a) })
+    roster.addEventListener('focusout', () => { if (full) shut(full) })
+
+    function line(y0: number, fn: (x: number) => number) {
+      let d = ''
+      for (let i = 0; i <= 96; i++) { const x = left + ((right - left) * i) / 96; d += `${i ? 'L' : 'M'}${x.toFixed(1)} ${(y0 + fn(x)).toFixed(1)}` }
+      return d
+    }
+
+    let last = -1
+    add(roster, {
+      resize() { dirty = true },
+      tick(t) {
+        if (dirty) layout()
+        const dt = last < 0 ? 1 / 60 : Math.min(0.048, (t - last) / 1000)
+        last = t
+        let more = false
+        for (const r of rows) {
+          if (r.t0 < 0) r.t0 = t
+          const k = reduceMotion ? 1 : clamp((t - r.t0) / r.dur, 0, 1)
+          r.h = r.from + (r.target - r.from) * ease(k)
+          if (k < 1) more = true
+          // A full opening's centre moves with its height; a peek's is sprung after the
+          // cursor, a touch under critical.
+          const goal = r === full ? r.goal : place(r, r.goal)
+          if (r === full) r.x = r.xFrom + (goal - r.xFrom) * ease(k)
+          else if (reduceMotion) { r.x = goal; r.v = 0 }
+          else {
+            r.v += (320 * (goal - r.x) - 30 * r.v) * dt
+            r.x += r.v * dt
+            if (Math.abs(goal - r.x) > 0.2 || Math.abs(r.v) > 2) more = true
+            else { r.x = goal; r.v = 0 }
+          }
+          if (!r.target && Math.abs(r.h) < 0.3) {
+            r.h = 0
+            if (shown === r) { release(r); shown = null }
+          }
+        }
+        if (!inside && !rows.some((r) => r.h)) roster.classList.remove('is-live')
+        const active = rows.filter((r) => r.h > 0)
+        // Only what's above an opening moves, and only upward.
+        for (const c of chars) {
+          const off = active.length ? -lift(c.x, c.y, active) : 0
+          if (Math.abs(off - c.off) <= 0.05) continue
+          c.off = off
+          if (!off) { c.el.style.transform = ''; continue }
+          let tr = `translateY(${off.toFixed(2)}px)`
+          if (c.bend) {
+            const slope = (lift(c.x - 2, c.y, active) - lift(c.x + 2, c.y, active)) / 4
+            tr += ` rotate(${Math.atan(slope).toFixed(4)}rad)`
+          }
+          c.el.style.transform = tr
+        }
+        bounds.forEach((y, i) => {
+          const r = rows[i - 1]
+          const P = (x: number) => (active.length ? lift(x, y, active) : 0)
+          const d = r && r.h > 0.3
+            ? line(y, (x) => -lens(r, x) - P(x)) + line(y, (x) => -P(x))
+            : line(y, (x) => -P(x))
+          // Only touch a rule whose shape changed, so still rules aren't repainted.
+          if (drawn[i] !== d) { drawn[i] = d; paths[i].setAttribute('d', d) }
+        })
+        // Every opening is cut out of the one dark layer underneath.
+        let shape = ''
+        for (const r of active) {
+          if (r.h <= 0.3) continue
+          const L = half(r), P = (x: number) => lift(x, r.y, active)
+          let up = '', down = ''
+          for (let i = 0; i <= 64; i++) {
+            const x = r.x - L + (2 * L * i) / 64, base = r.y - P(x)
+            up += `${i ? ' L ' : 'M '}${x.toFixed(1)} ${(base - lens(r, x)).toFixed(1)}`
+            down = ` L ${x.toFixed(1)} ${base.toFixed(1)}` + down
+          }
+          shape += `${up}${down} Z `
+        }
+        if (shape) {
+          eyeEl.style.clipPath = `path('${shape}')`
+          lips.setAttribute('d', shape)
+        } else eyeEl.style.clipPath = ''
+        if (shown && shown.h > 0.3) {
+          const { H } = size(), h = shown.h
+          eyeEl.style.setProperty('--x', `${shown.x.toFixed(1)}px`)
+          // The drawing and its label centre in the opening, which sits wholly above the rule.
+          eyeEl.style.setProperty('--y', `${(shown.y - h / 2).toFixed(1)}px`)
+          eyeEl.style.setProperty('--h', `${h.toFixed(1)}px`)
+          eyeEl.style.setProperty('--L', `${half(shown).toFixed(0)}px`)
+          eyeEl.style.setProperty('--px', `${((W / 2 - shown.x) * 0.08).toFixed(1)}px`)
+          eyeEl.style.setProperty('--py', `${((1 - h / H) * 6).toFixed(1)}px`)
+        }
+        return more
+      },
+    })
+  })
+</script>

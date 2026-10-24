@@ -1,0 +1,80 @@
+---
+/**
+ * Horizon — the top of a little hand-drawn planet, storybook style: a wobbly ink line with
+ * a few doodles standing on it, and sparkles in the sky. The ground's wobble is built into
+ * the path itself (no filter), so the lines stay crisp at any size.
+ */
+const W = 1200, H = 90, TOP = 50        // viewBox, and where the planet's crown sits
+const R = 4000                           // planet radius in viewBox units
+const CX = W / 2, CY = TOP + R
+
+// Doodles in local units: standing on y = 0, drawn upward.
+const DOODLES: Record<string, string> = {
+  pine: 'M0 0V-4M-7-4L0-26L7-4ZM-5-12L0-20 5-12',
+  tree: 'M0 0V-10M0-10C-10-10-12-22-6-26C-4-34 6-34 7-26C13-22 10-10 0-10',
+  house: 'M-10 0V-14L0-23L10-14V0ZM-3 0V-7H3V0M5-17V-24H8V-14M7-28C4-31 9-33 6-37C4-40 8-42 7-44',
+  hill: 'M-26 0C-16-14-6-18 4-12C10-18 20-14 26 0',
+  lighthouse: 'M-6 0L-4-24H4L6 0ZM-5-12H5M-5-24V-30H5V-24M-3-30L0-34L3-30M6-28L16-31M6-26L16-23',
+  bench: 'M-8 0V-6H8V0M-9-6H9M-8-6V-10H8',
+  flower: 'M0 0V-9M0-9m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0M0-4C2-6 4-6 5-5',
+}
+// Where each doodle stands, as a horizontal offset from the crown.
+const PLACES: [keyof typeof DOODLES, number, number?][] = [
+  ['pine', -470], ['pine', -448, 0.8], ['hill', -380], ['tree', -300], ['flower', -258, 1],
+  ['house', -170], ['tree', -138, 0.8], ['bench', -40], ['flower', 18], ['flower', 30, 0.8],
+  ['hill', 110], ['pine', 190], ['pine', 210, 1.2], ['pine', 232, 0.9], ['tree', 330],
+  ['lighthouse', 440], ['flower', 500],
+]
+// A few slow waves that nudge the ground up and down so it reads as drawn by hand.
+const wobble = (x: number) => 2.4 * Math.sin(x / 41) + 1.4 * Math.sin(x / 17 + 1.7) + 1.2 * Math.sin(x / 83 + 0.4)
+const groundY = (x: number) => CY - Math.sqrt(R * R - (x - CX) ** 2) + wobble(x)
+// Doodles stand on the wobbly ground, tilted with its slope.
+const onPlanet = (dx: number) => {
+  const x = CX + dx, y = groundY(x)
+  const deg = (Math.atan2(groundY(x + 2) - groundY(x - 2), 4) * 180) / Math.PI
+  return { x, y, deg }
+}
+const doodles = PLACES.map(([kind, dx, s = 1]) => {
+  const p = onPlanet(dx)
+  return { d: DOODLES[kind], t: `translate(${p.x.toFixed(1)} ${(p.y + 1.5).toFixed(1)}) rotate(${p.deg.toFixed(2)}) scale(${s})` }
+})
+const sparkle = 'M0-5Q0 0 5 0Q0 0 0 5Q0 0-5 0Q0 0 0-5Z'
+const SPARKLES = [[-520, 22, 0.8], [-330, 12, 1], [-90, 30, 0.7], [70, 10, 1.1], [270, 26, 0.8], [560, 16, 0.9]]
+// The ground line, sampled from groundY and smoothed through the midpoints.
+const ground = (lift: number) => {
+  const pts = Array.from({ length: 129 }, (_, i) => {
+    const x = -40 + (i * (W + 80)) / 128
+    return [x, groundY(x) + lift]
+  })
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [x, y] = pts[i], [nx, ny] = pts[i + 1]
+    d += `Q${x.toFixed(1)} ${y.toFixed(1)} ${((x + nx) / 2).toFixed(1)} ${((y + ny) / 2).toFixed(1)}`
+  }
+  const [lx, ly] = pts[pts.length - 1]
+  return `${d}L${lx.toFixed(1)} ${ly.toFixed(1)}`
+}
+---
+<svg class="horizon" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false">
+  <g>
+    <path class="horizon__limb" d={ground(0)} />
+    <path class="horizon__limb horizon__limb--echo" d={ground(5)} />
+    {doodles.map((g) => <path d={g.d} transform={g.t} />)}
+    <g transform={`translate(${CX + 400} 26)`}><path d="M6-10A11 11 0 1 0 6 10A8 8 0 1 1 6-10Z" /></g>
+    {SPARKLES.map(([dx, y, s]) => <path class="horizon__spark" d={sparkle} transform={`translate(${CX + dx} ${y}) scale(${s})`} />)}
+  </g>
+</svg>
+
+<style>
+  .horizon {
+    display: block; width: 100%; height: clamp(56px, 7.5vw, 112px); overflow: visible;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem); color: var(--text);
+  }
+  .horizon path {
+    fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .horizon__limb { stroke-width: 2; }
+  .horizon__limb--echo { stroke-width: 1; opacity: 0.35; stroke-dasharray: 2 7; }
+  .horizon .horizon__spark { fill: currentColor; stroke: none; opacity: 0.8; }
+</style>

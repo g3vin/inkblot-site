@@ -1,0 +1,55 @@
+---
+/**
+ * NotesSection — "Notes that stay with the words." The app itself: a passage from the
+ * sample book with the writer's note pinned open beside "light it at dusk", its photo
+ * and voice memo, tied to the phrase by the app's own string. The capture is the `notes`
+ * shot (screens.ts), taken from the app on every release, in the place the passage
+ * was set by hand before.
+ */
+import AppWindow from './AppWindow.astro'
+import HandRule from './HandRule.astro'
+
+interface Props {
+  title: string
+  body: string
+  screen: string
+}
+const { title, body, screen } = Astro.props
+---
+<section class="section notes" id="notes" aria-labelledby="notes-title">
+  <HandRule seed={3} wrap />
+  <div class="wrap notes__grid">
+    <div class="notes__head">
+      <h2 class="display notes__title" id="notes-title">{title}</h2>
+      <p class="notes__body">{body}</p>
+    </div>
+    <AppWindow screen={screen} class="notes__page" />
+  </div>
+</section>
+
+<style>
+  .notes { position: relative; background: var(--bg); --rule-color: var(--line-strong); }
+  .notes__grid { display: grid; gap: 2rem clamp(2rem, 5vw, 5rem); grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); align-items: center; }
+  .notes__head { display: grid; gap: 1.25rem; }
+  .notes__title { font-size: var(--step-4); max-width: 10ch; }
+  .notes__body { max-width: 38ch; color: var(--text-2); text-wrap: pretty; }
+  @media (max-width: 900px) {
+    .notes__grid { grid-template-columns: 1fr; }
+    .notes__title { font-size: var(--step-3); max-width: 14ch; }
+  }
+  /* A phone would shrink the passage past reading, so the capture keeps a readable size
+     and pans, opening on the phrase and its note. */
+  @media (max-width: 700px) {
+    .notes :global(.notes__page) { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+    .notes :global(.notes__page img) { width: 700px; max-width: none; }
+  }
+</style>
+
+<script>
+  // Open on "light it at dusk" (a third of the way across), with the note in view at the edge.
+  const page = document.querySelector<HTMLElement>('.notes .notes__page')
+  // The capture in the visitor's theme (the other is display: none).
+  const img = [...(page?.querySelectorAll('img') ?? [])].find((i) => i.getClientRects().length)
+  const open = () => { if (page && img && page.scrollWidth > page.clientWidth) page.scrollLeft = img.clientWidth * 0.325 }
+  if (img?.complete) open(); else img?.addEventListener('load', open, { once: true })
+</script>

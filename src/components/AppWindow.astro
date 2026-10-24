@@ -1,0 +1,36 @@
+---
+/**
+ * AppWindow — a window frame around an app screen from the screens registry.
+ * `night` is the Pitch-black frame; `fade` drops the frame line, for windows rising out
+ * of a fade.
+ *
+ * The screen is the app's own capture (Shot.astro, src/data/app.ts). With none yet, a
+ * labelled placeholder holds the space.
+ *
+ * The frame is only the window's outline. Inkblot has no title bar: its traffic lights
+ * sit in the left sidebar beside the project title, where a capture already shows them.
+ */
+import Shot from './Shot.astro'
+import Slot from './Slot.astro'
+import { SCREENS } from '../data/screens'
+
+interface Props {
+  screen: string
+  variant?: 'default' | 'night' | 'fade'
+  class?: string
+}
+const { screen: id, variant = 'default', class: className } = Astro.props
+const screen = SCREENS[id]
+if (!screen) throw new Error(`AppWindow: no screen "${id}" in src/data/screens.ts`)
+---
+<figure class:list={['window', `window--${variant}`, className]}>
+  {screen.shot ? <Shot screen={id} /> : <Slot aspect={screen.aspect} label={screen.placeholder} />}
+</figure>
+
+<style>
+  .window--night {
+    --line-strong: var(--night-line); --line: #1a1714; --bg-raised: var(--night-raised);
+    --slot-bg: var(--night-slot); --slot-ink: var(--night-muted); --tile-edge: rgba(201, 162, 115, 0.22);
+  }
+  .window--fade { border: 0; box-shadow: none; }
+</style>
